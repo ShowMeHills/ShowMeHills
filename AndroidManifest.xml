@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="com.nikcain.ShowMeHills"
+      package="com.showmehills"
       android:versionCode="1" 
       android:versionName="1.0">
     <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="8" />
@@ -26,9 +26,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-		<activity android:name="myPreferences"></activity>
-		<activity android:name="myMapOverlay"></activity>
-		<activity android:name="MountainInfo"></activity>
+		<activity android:name=".AppPreferences"></activity>
+		<activity android:name=".MapOverlay"></activity>
+		<activity android:name="com.showmehills.HillInfo"></activity>
     </application>
        
 </manifest>
