@@ -131,14 +131,12 @@ public class ShowMeHillsActivity extends Activity implements LocationListener, S
 	void RegisterListeners()
 	{
 
-			Criteria fine = new Criteria();
-			fine.setAccuracy(Criteria.ACCURACY_FINE);
+		Criteria fine = new Criteria();
+		fine.setAccuracy(Criteria.ACCURACY_COARSE);
 		
 		// Get at least something from the device,
 		// could be very inaccurate though
-		curLocation = mLocationManager.getLastKnownLocation(
-				mLocationManager.getBestProvider(fine, true));
-
+		curLocation = mLocationManager.getLastKnownLocation(mLocationManager.getBestProvider(fine, true));
 
 		mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
 		mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI);	 

@@ -80,9 +80,21 @@ public class MapOverlay  extends MapActivity {
 
 		LocationManager mLocationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
         curLocation = mLocationManager.getLastKnownLocation(mLocationManager.getBestProvider(fine, true));
+        if (curLocation == null) 
+        {
+
+    		fine.setAccuracy(Criteria.ACCURACY_COARSE);
+
+    		mLocationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+            curLocation = mLocationManager.getLastKnownLocation(mLocationManager.getBestProvider(fine, true));
+            if (curLocation == null) 
+            {
+            	//give up
+            	return;
+            }
+        }
         myDbHelper.SetDirections(curLocation);
         
-        Log.d("showmehills", "set loc " + curLocation.getLatitude() + "," + curLocation.getLongitude());
         MapView mapView = (MapView) findViewById(R.id.mapview);
         List<Overlay> mapOverlays = mapView.getOverlays();
         Drawable drawable = this.getResources().getDrawable(R.drawable.androidmarker);

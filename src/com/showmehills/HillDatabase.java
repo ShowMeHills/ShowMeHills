@@ -119,7 +119,6 @@ import android.util.Log;
 			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(myContext);
 	        Float maxdistance = Float.parseFloat(prefs.getString("distance", "25"));
 	        
-			Log.d("showmehills", "new location: " + curLocation.getLongitude() +"," + curLocation.getLatitude() + " +/-" + curLocation.getAccuracy() + "m");
 			localhills.clear();
 			
 			// use a rule of thumb for distance between lines of lat & long
