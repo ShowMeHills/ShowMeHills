@@ -1,0 +1,15 @@
+ShowMeHills
+===========
+
+ShowMeHills is an augmented reality Android application for viewing the names of mountains superimposed over a camera view.
+
+The database of mountains is limited to the UK since GPS coordinates are openly available at http://www.hills-database.co.uk/ The database could contain anything with GPS coordinates, not just hills. 
+
+Initially the project was just a learning experience to help me understand Android applications, but I was sufficiently pleased enough with the results to start thinking about publishing it on Android Market (or Play Store whatever it's called now). However getting the application to work perfectly proved illusive and I realised that I couldn't honestly charge anyone for it. If I was going to offer the application for free, then it made sense to make it open source as well.
+
+The problem in making it sufficiently decent for the average user was that the compass in my Android phone was extremely unreliable. It held its position with reasonable stability, but would be offset up to 20 degrees. Without a reliable compass you can't overlay the mountain names with any precision. Hopefully other handsets perform better, or someone spots a mistake I've made in the orientation code.
+
+License
+=======
+
+This project released under the GPLv3 license.
