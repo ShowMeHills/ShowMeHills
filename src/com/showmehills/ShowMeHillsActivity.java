@@ -255,6 +255,10 @@ public class ShowMeHillsActivity extends Activity implements LocationListener, S
 			Intent myIntent = new Intent(getBaseContext(), MapOverlay.class);
 			startActivityForResult(myIntent, 0);
 			break;
+		case R.id.about:
+			Intent myAboutIntent = new Intent(getBaseContext(), About.class);
+			startActivityForResult(myAboutIntent, 0);
+			break;
 		case R.id.fovcalibrate:
 			SharedPreferences customSharedPreference = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
 	        SharedPreferences.Editor editor = customSharedPreference.edit();

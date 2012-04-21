@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+<ScrollView
+android:id="@+id/ScrollView01"
+android:layout_width="fill_parent"
+android:layout_height="wrap_content"
+>
+<TableLayout
+android:id="@+id/TableLayout"
+android:layout_width="fill_parent"
+android:layout_height="wrap_content">
+
+<View
+android:layout_width="fill_parent"
+android:layout_height="5pt"
+/>
+
+    
+<TextView
+android:text="ShowMeHills"
+android:background="#A0402020"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:gravity="center"/>
+<TextView
+android:text="This application is Open Source, and is released under the GPLv3 license."
+android:background="#A0402020"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:gravity="left"/>
+<TextView
+android:text="If you wish to contribute, find the project at https://github.com/ShowMeHills"
+android:autoLink="web"
+android:background="#A0402020"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:gravity="left"/>
+<TextView
+android:text="Database for mountain peak locations is from the excellent Database of British and Irish Hills http://www.hills-database.co.uk/downloads.html"
+android:background="#A0402020"
+android:autoLink="web"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:gravity="left"/>
+</TableLayout>
+</ScrollView>
+
+</LinearLayout>
