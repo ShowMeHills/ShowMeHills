@@ -97,6 +97,7 @@ public class ShowMeHillsActivity extends Activity implements LocationListener, S
 	boolean showdist = false;
 	boolean typeunits = false; // true for metric, false for imperial
 	boolean showheight = false;
+	boolean showhelp = true;
 
 	public class HillMarker
 	{
@@ -126,6 +127,7 @@ public class ShowMeHillsActivity extends Activity implements LocationListener, S
 		isCalibrated = prefs.getBoolean("isCalibrated", false);
 		hfov = prefs.getFloat("hfov", (float) 50.2);
 		compassAdjustment = prefs.getFloat("compassAdjustment", 0);
+		showhelp = prefs.getBoolean("showhelp", true);
 	}
 
 	void RegisterListeners()
@@ -225,7 +227,12 @@ public class ShowMeHillsActivity extends Activity implements LocationListener, S
 
 		rl.addView(cv);            
         cv.setOnTouchListener((OnTouchListener) this); 
-
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+		if (prefs.getBoolean("showhelp", true))
+		{
+			Intent myHelpIntent = new Intent(getBaseContext(), Help.class);
+			startActivityForResult(myHelpIntent, 0);
+		}
 	}
 
 	@Override
@@ -240,6 +247,8 @@ public class ShowMeHillsActivity extends Activity implements LocationListener, S
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle all of the possible menu actions.
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+		SharedPreferences.Editor editor = prefs.edit();
 		switch (item.getItemId()) {
 		case R.id.preferences_menutitem:
 			Intent settingsActivity = new Intent(getBaseContext(),AppPreferences.class);
@@ -247,19 +256,22 @@ public class ShowMeHillsActivity extends Activity implements LocationListener, S
 			break;
 		case R.id.mapoverlay:
 			myDbHelper.SetDirections(curLocation);
-			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-			prefs.edit().putFloat("longitude", (float)curLocation.getLongitude());
-			prefs.edit().putFloat("latitude", (float)curLocation.getLatitude());
+			
+			editor.putFloat("longitude", (float)curLocation.getLongitude());
+			editor.putFloat("latitude", (float)curLocation.getLatitude());
+			editor.commit();
 			Intent myIntent = new Intent(getBaseContext(), MapOverlay.class);
 			startActivityForResult(myIntent, 0);
+			break;
+		case R.id.help:
+			Intent myHelpIntent = new Intent(getBaseContext(), Help.class);
+			startActivityForResult(myHelpIntent, 0);
 			break;
 		case R.id.about:
 			Intent myAboutIntent = new Intent(getBaseContext(), About.class);
 			startActivityForResult(myAboutIntent, 0);
 			break;
 		case R.id.fovcalibrate:
-			SharedPreferences customSharedPreference = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-	        SharedPreferences.Editor editor = customSharedPreference.edit();
 	        calibrationStep = -1;
 	        isCalibrated = false;
 	        editor.putBoolean("isCalibrated", false);

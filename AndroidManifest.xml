@@ -28,6 +28,7 @@
         </activity>
 		<activity android:name="com.showmehills.AppPreferences"></activity>
 		<activity android:name="com.showmehills.MapOverlay"></activity>
+		<activity android:name="com.showmehills.Help"></activity>
 		<activity android:name="com.showmehills.About"></activity>
 		<activity android:name="com.showmehills.HillInfo"></activity>
     </application>

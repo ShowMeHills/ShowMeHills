@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+    <ScrollView
+android:id="@+id/ScrollView01"
+android:layout_width="fill_parent"
+android:layout_height="wrap_content"
+>
+<TableLayout
+android:id="@+id/TableLayout"
+android:layout_width="fill_parent"
+android:layout_height="wrap_content">
+
+<View
+android:layout_width="fill_parent"
+android:layout_height="5pt"
+/>
+
+<TextView
+android:text="This application gives you a view through the camera and overlays the names of local hills and mountains." 
+android:background="#A0402020"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:gravity="left"/>
+
+<TextView
+android:text="The position of the names is calculated from your GPS location and the compass bearing of your view. If either of these are inaccurate then the position of the names will be inaccurate."
+android:background="#A0402020"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:gravity="left"/>
+
+<TextView
+android:text="The first screen you see will be the Field of View (FOV) calibration screen. Line up a distant object with
+the left of the screen, wait for the compass accuracy circle to settle down to mostly green, and gently touch the screen to register its position. Turn so the object is on the right of the screen
+and repeat to complete the calibration. This is measuring the angle of your camera view. Choosing
+distant narrow objects is best, aligning it at the very extreme edge of the screen. You can do the calibration at
+any time by choosing 'FOV Calibration' from the menu."
+android:background="#A0402020"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:gravity="left"/>
+
+<TextView
+android:text="The phone needs to get a GPS lock before it will display any hills. You know when this has happened when the text at the 
+bottom of the screen shows a location accuracy (+/- a number of meters). An accuracy of more than 100m is probably too inaccurate,
+and you'll need to wait for a better fix."
+android:background="#A0402020"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:gravity="left"/>
+
+<TextView
+android:text="The position of the names is then dependent on the compass bearing. If this is inaccurate try the figure of 8 compass calibration (http://youtu.be/sP3d00Hr14o). You can also
+offset the compass using the volume keys of the phone. Hopefully once you've offset the compass to a good bearing it won't
+need realigning later."
+android:autoLink="web"
+android:background="#A0402020"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:gravity="left"/>
+<CheckBox
+        android:id="@+id/showhelp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Show at start" />
+<Button
+        android:id="@+id/okbtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="OK" />
+</TableLayout>
+</ScrollView>
+
+    
+
+</LinearLayout>
