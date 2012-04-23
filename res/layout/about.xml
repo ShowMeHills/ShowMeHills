@@ -26,20 +26,26 @@ android:layout_width="wrap_content"
 android:layout_height="wrap_content"
 android:gravity="center"/>
 <TextView
+android:text="Copyright 2012 Nik Cain"
+android:background="#A0402020"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:gravity="left"/>
+<TextView
 android:text="This application is Open Source, and is released under the GPLv3 license."
 android:background="#A0402020"
 android:layout_width="wrap_content"
 android:layout_height="wrap_content"
 android:gravity="left"/>
 <TextView
-android:text="If you wish to contribute, find the project at https://github.com/ShowMeHills"
+android:text="If you wish to contribute, find the project at https://github.com/ShowMeHills/ShowMeHills/wiki"
 android:autoLink="web"
 android:background="#A0402020"
 android:layout_width="wrap_content"
 android:layout_height="wrap_content"
 android:gravity="left"/>
 <TextView
-android:text="Database for mountain peak locations is from the excellent Database of British and Irish Hills http://www.hills-database.co.uk/downloads.html"
+android:text="Database for mountain peak locations is from the excellent Database of British and Irish Hills http://www.hills-database.co.uk"
 android:background="#A0402020"
 android:autoLink="web"
 android:layout_width="wrap_content"
