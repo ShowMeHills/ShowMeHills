@@ -6,4 +6,5 @@
     <item android:id="@+id/fovcalibrate" android:title="FOV calibrate" android:enabled="true" android:visible="true"></item>
     <item android:id="@+id/help" android:title="Help" android:enabled="true" android:visible="true"></item>
     <item android:id="@+id/about" android:title="About" android:enabled="true" android:visible="true"></item>
+    <item android:id="@+id/exit" android:title="Exit" android:enabled="true" android:visible="true"></item>
 </menu>

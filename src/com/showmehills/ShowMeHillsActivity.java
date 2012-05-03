@@ -271,6 +271,9 @@ public class ShowMeHillsActivity extends Activity implements LocationListener, S
 			Intent myAboutIntent = new Intent(getBaseContext(), About.class);
 			startActivityForResult(myAboutIntent, 0);
 			break;
+		case R.id.exit:
+			finish();
+			break;
 		case R.id.fovcalibrate:
 	        calibrationStep = -1;
 	        isCalibrated = false;
@@ -567,6 +570,13 @@ public class ShowMeHillsActivity extends Activity implements LocationListener, S
 			if (badsensor)
 			{
 				canvas.drawText( "Recalibrate sensor!", 10, 80, paint);	
+			}
+			if (curLocation == null || curLocation.getAccuracy() > 200)
+			{
+				if (curLocation == null || acc=="") basetext = "No GPS position yet";
+				else if (curLocation.getAccuracy() > 200) basetext = "Warning - GPS position too inaccurate";
+				canvas.drawText( basetext, scrwidth/2, scrheight/2, strokePaint);
+				canvas.drawText( basetext, scrwidth/2, scrheight/2, textPaint);	
 			}
 			int va = fd.GetVariation();
 			variationPaint.setARGB(255, 255, 0, 0);

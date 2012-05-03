@@ -26,32 +26,62 @@ import java.util.List;
 import android.content.Context;
 import android.content.Intent;
 import android.database.SQLException;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.Point;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Criteria;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.Surface;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
+import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
 import com.showmehills.R;
 
-public class MapOverlay  extends MapActivity {
+public class MapOverlay  extends MapActivity implements SensorEventListener {
 	
 	private HillDatabase myDbHelper;
 	private Location curLocation;
+	MapOverlayCompassItem compassOverlay;
+
+	private SensorManager mSensorManager;
+	Sensor accelerometer;
+	Sensor magnetometer;  
+	float[] mGravity;
+	float[] mGeomagnetic;
+	float mDeclination = 0;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
+
+		mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+
+		accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		magnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+
+		mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
+		mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI);	 
+
         myDbHelper = new HillDatabase(this); 
         try { 
         	myDbHelper.createDataBase(); 
@@ -64,14 +94,52 @@ public class MapOverlay  extends MapActivity {
 	 		throw sqle;	 
 	 	}
 	 	
-	 	
         setContentView(R.layout.mapoverlay);
         MapView mapView = (MapView) findViewById(R.id.mapview);
         mapView.setBuiltInZoomControls(true);
-        
         AddItems();
         
     }	
+
+	@Override
+	protected void onResume() {
+		Log.d("showmehills", "onResume");
+		super.onResume();
+
+		mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
+		mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI);	 
+
+		try {	 
+			myDbHelper.openDataBase();	 
+		}catch(SQLException sqle){	 
+			throw sqle;	 
+		}
+	}
+
+	@Override
+	protected void onPause() {
+		Log.d("showmehills", "onPause");
+		super.onPause();   
+		mSensorManager.unregisterListener(this);
+		
+		try {	 
+			myDbHelper.close();	 
+		}catch(SQLException sqle){	 
+			throw sqle;	 
+		}
+	}
+	@Override
+	protected void onStop()
+	{
+		try {	 
+			myDbHelper.close();	 
+		}catch(SQLException sqle){	 
+			throw sqle;	 
+		}
+		super.onStop();
+	}
+
+	
 	void AddItems()
 	{
 
@@ -97,8 +165,21 @@ public class MapOverlay  extends MapActivity {
         
         MapView mapView = (MapView) findViewById(R.id.mapview);
         List<Overlay> mapOverlays = mapView.getOverlays();
+
+        Drawable barrw = this.getResources().getDrawable(R.drawable.bluearrow);
+        compassOverlay = new MapOverlayCompassItem(barrw, this);
+
+        OverlayItem compassitem = new OverlayItem(new GeoPoint((int)(curLocation.getLatitude()*1E6),(int)(curLocation.getLongitude()*1E6)), "me","me");
+
+        compassOverlay.addOverlay(compassitem);
+        mapOverlays.add(compassOverlay);
         Drawable drawable = this.getResources().getDrawable(R.drawable.androidmarker);
         
+        int minLat = Integer.MAX_VALUE;
+        int maxLat = Integer.MIN_VALUE;
+        int minLon = Integer.MAX_VALUE;
+        int maxLon = Integer.MIN_VALUE;
+
 	    ArrayList<Hills> localhills = myDbHelper.localhills;
 		for (int h = 0; h < localhills.size(); h++)
 		{
@@ -110,7 +191,17 @@ public class MapOverlay  extends MapActivity {
 	        MapOverlayItem itemizedoverlay = new MapOverlayItem(drawable, this);
 	        itemizedoverlay.addOverlay(overlayitem);
 	        mapOverlays.add(itemizedoverlay);
+
+            maxLat = Math.max(point.getLatitudeE6(), maxLat);
+            minLat = Math.min(point.getLatitudeE6(), minLat);
+            maxLon = Math.max(point.getLongitudeE6(), maxLon);
+            minLon = Math.min(point.getLongitudeE6(), minLon);
 		}
+		MapController mc = mapView.getController();
+		double fitFactor = 1.5;
+        mc.zoomToSpan((int) (Math.abs(maxLat - minLat) * fitFactor), (int)(Math.abs(maxLon - minLon) * fitFactor));
+        mc.animateTo(new GeoPoint( (maxLat + minLat)/2, (maxLon + minLon)/2 ));
+        
 	}
 
 	@Override
@@ -133,6 +224,14 @@ public class MapOverlay  extends MapActivity {
         case R.id.cameraview:
         	finish();
             break;
+		case R.id.help:
+			Intent myHelpIntent = new Intent(getBaseContext(), Help.class);
+			startActivityForResult(myHelpIntent, 0);
+			break;
+		case R.id.about:
+			Intent myAboutIntent = new Intent(getBaseContext(), About.class);
+			startActivityForResult(myAboutIntent, 0);
+			break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -142,5 +241,34 @@ public class MapOverlay  extends MapActivity {
 		// TODO Auto-generated method stub
 		return false;
 	}
-	
+	public void onAccuracyChanged(Sensor sensor, int accuracy) {
+		// TODO Auto-generated method stub
+		
+	}
+	public void onSensorChanged(SensorEvent event) {
+		if (event.accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE) {
+			return;
+		}
+
+		if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)  mGravity = event.values;
+		if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) mGeomagnetic = event.values;
+
+		if (mGravity != null && mGeomagnetic != null) {
+
+			float[] rotationMatrixA = new float[9];
+			if (SensorManager.getRotationMatrix(rotationMatrixA, null, mGravity, mGeomagnetic)) {
+				Matrix tmpA = new Matrix();
+				tmpA.setValues(rotationMatrixA);
+				tmpA.postRotate( -mDeclination );
+				tmpA.getValues(rotationMatrixA);
+				
+				float[] dv = new float[3]; 
+				SensorManager.getOrientation(rotationMatrixA, dv);
+				if (compassOverlay.size() > 0)
+				{
+					compassOverlay.mBearing = (float) Math.toDegrees((float)dv[0]);
+				}
+			}
+		}
+	}
 }
