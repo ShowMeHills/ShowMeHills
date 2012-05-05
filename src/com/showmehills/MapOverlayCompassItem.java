@@ -77,7 +77,7 @@ public class MapOverlayCompassItem extends ItemizedOverlay<OverlayItem> {
     }
 
 	public MapOverlayCompassItem(Drawable defaultMarker, Context context) {		
-		super(boundCenterBottom(defaultMarker));
+		super(boundCenter(defaultMarker));
 	}
 	
 	public void addOverlay(OverlayItem overlay) {

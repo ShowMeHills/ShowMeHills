@@ -267,6 +267,9 @@ public class MapOverlay  extends MapActivity implements SensorEventListener {
 				if (compassOverlay.size() > 0)
 				{
 					compassOverlay.mBearing = (float) Math.toDegrees((float)dv[0]);
+
+			        MapView mapView = (MapView) findViewById(R.id.mapview);
+			        mapView.invalidate();
 				}
 			}
 		}
