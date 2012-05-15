@@ -136,10 +136,10 @@ import android.util.Log;
 	        	do {
 	        		Hills h = new Hills( 
 	        				cursor.getInt(cursor.getColumnIndex("_id")),
-	        				cursor.getString(cursor.getColumnIndex("Name")),
-	        				cursor.getDouble(cursor.getColumnIndex("Longitude")),
-	        				cursor.getDouble(cursor.getColumnIndex("Latitude")),
-	        				cursor.getDouble(cursor.getColumnIndex("Metres")));
+	        				cursor.getString(cursor.getColumnIndex("name")),
+	        				cursor.getDouble(cursor.getColumnIndex("longitude")),
+	        				cursor.getDouble(cursor.getColumnIndex("latitude")),
+	        				cursor.getDouble(cursor.getColumnIndex("height")));
 	        		//Log.d("showmehills", "Adding " + h.hillname + "@"+h.longitude+","+h.latitude);
 	        		localhills.add(h);
 	        	} while (cursor.moveToNext());

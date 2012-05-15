@@ -26,10 +26,11 @@ android:layout_width="wrap_content"
 android:layout_height="wrap_content"
 android:gravity="center"/>
 <TextView
-android:text="Copyright 2012 Nik Cain"
+android:text="&#169; 2012 Nik Cain"
 android:background="#A0402020"
 android:layout_width="wrap_content"
 android:layout_height="wrap_content"
+android:textStyle="bold"
 android:gravity="left"/>
 <TextView
 android:text="This application is Open Source, and is released under the GPLv3 license."
@@ -44,8 +45,32 @@ android:background="#A0402020"
 android:layout_width="wrap_content"
 android:layout_height="wrap_content"
 android:gravity="left"/>
+
 <TextView
-android:text="Database for mountain peak locations is from the excellent Database of British and Irish Hills http://www.hills-database.co.uk"
+android:text="Credits"
+android:background="#A0402020"
+android:autoLink="web"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content" 
+android:textStyle="bold"
+android:gravity="left"/>
+<TextView
+android:text="UK peaks are from the excellent Database of British and Irish Hills http://www.hills-database.co.uk"
+android:background="#A0402020"
+android:autoLink="web"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:gravity="left"/>
+
+<TextView
+android:text="European continental peaks provided by Mayeul Kauffmann from http://www.outdoormaps.org and http://openstreetmap.org"
+android:background="#A0402020"
+android:autoLink="web"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:gravity="left"/>
+<TextView
+android:text="openstreetmap data &#169; OpenStreetMapContributors, CC-BY-SA"
 android:background="#A0402020"
 android:autoLink="web"
 android:layout_width="wrap_content"

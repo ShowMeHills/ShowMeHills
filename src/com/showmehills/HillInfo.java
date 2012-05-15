@@ -56,15 +56,15 @@ public class HillInfo extends Activity{
 		if (cursor.moveToFirst())
 		{
 			TextView t = (TextView) findViewById(R.id.hillname);
-			String n = cursor.getString(cursor.getColumnIndex("Name"));
+			String n = cursor.getString(cursor.getColumnIndex("name"));
 			t.setText(n);
 			
 			t = (TextView) findViewById(R.id.hillheight);
-			double h = cursor.getDouble(cursor.getColumnIndex("Metres"));
+			double h = cursor.getDouble(cursor.getColumnIndex("metres"));
 			t.setText(""+h);
 			
 			t = (TextView) findViewById(R.id.infolink);
-			n = cursor.getString(cursor.getColumnIndex("Hillbagging"));
+			n = cursor.getString(cursor.getColumnIndex("link"));
 			t.setText("web: "+n);
 			
 		}

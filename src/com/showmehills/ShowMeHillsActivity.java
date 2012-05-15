@@ -138,7 +138,16 @@ public class ShowMeHillsActivity extends Activity implements LocationListener, S
 		
 		// Get at least something from the device,
 		// could be very inaccurate though
-		curLocation = mLocationManager.getLastKnownLocation(mLocationManager.getBestProvider(fine, true));
+		if (mLocationManager.getBestProvider(fine, true) != null)
+		{
+			try {
+				curLocation = mLocationManager.getLastKnownLocation(mLocationManager.getBestProvider(fine, true));
+			}
+			catch(Exception e)
+			 {
+				Log.e("showmehills", "location manager: " + e.getMessage());
+			 }			
+		}
 
 		mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
 		mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI);	 
@@ -215,8 +224,8 @@ public class ShowMeHillsActivity extends Activity implements LocationListener, S
 		scrheight = display.getHeight();
 		curLocation = new Location("dummyprovider");
 
-		curLocation.setLatitude(52.213280);
-		curLocation.setLongitude(0.135612);
+		curLocation.setLatitude(46.283280);
+		curLocation.setLongitude(7.535612);
 
 		cv = new CameraPreviewSurface( this.getApplicationContext(), this);
 		FrameLayout rl = new FrameLayout( this.getApplicationContext());		
