@@ -51,18 +51,21 @@ import android.util.Log;
 	        this.myContext = context;
 	    }	
 	 
-	    public void createDataBase() throws IOException{	 
-	    	boolean dbExist = checkDataBase();	 
-	    	if(dbExist){
+	    public void createDataBase() throws IOException{
+	    	// made some changes in the database, but need to update it in existing installs!
+	    	// so need to add a version number
+	    	// for now just update db every time
+	    //	boolean dbExist = checkDataBase();	 
+	    //	if(dbExist){
 	    		//do nothing - database already exist
-	    	}else{	 
+	    //	}else{	 
 	        	this.getReadableDatabase();	 
 	        	try {	 
 	    			copyDataBase();	 
 	    		} catch (IOException e) {	 
 	        		throw new Error("Error copying database");	 
 	        	}
-	    	}	 
+	    //	}	 
 	    }
 	 
 	    private boolean checkDataBase(){	 
@@ -134,6 +137,7 @@ import android.util.Log;
 	        
 			if(cursor.moveToFirst()) {
 	        	do {
+	        		try {
 	        		Hills h = new Hills( 
 	        				cursor.getInt(cursor.getColumnIndex("_id")),
 	        				cursor.getString(cursor.getColumnIndex("name")),
@@ -142,6 +146,10 @@ import android.util.Log;
 	        				cursor.getDouble(cursor.getColumnIndex("height")));
 	        		//Log.d("showmehills", "Adding " + h.hillname + "@"+h.longitude+","+h.latitude);
 	        		localhills.add(h);
+					} catch(Exception e)
+					{
+						Log.e("showmehills", "bad database read: " + e.getMessage());
+					}			
 	        	} while (cursor.moveToNext());
 	        }
 	        
