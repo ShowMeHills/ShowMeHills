@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<PreferenceCategory android:title="@string/preferences">
+
+		<EditTextPreference android:key="distance" android:numeric="integer"
+			android:title="@string/title_distance_preference" android:summary="@string/summary_distance_preference" 
+			 android:defaultValue="30"/>
+
+		<EditTextPreference android:key="textsize" android:numeric="integer"
+			android:title="@string/title_textsize_preference" android:summary="@string/summary_textsize_preference" 
+			 android:defaultValue="25"/>
+
+		<CheckBoxPreference android:key="showdir"
+			android:title="@string/title_showdir_preference" android:defaultValue="false"
+			android:summary="@string/summary_showdir_preference" />
+			
+		<CheckBoxPreference android:key="showdist"
+			android:title="@string/title_showdist_preference" android:defaultValue="false"
+			android:summary="@string/summary_showdist_preference" />
+			
+		<CheckBoxPreference android:key="showalt"
+			android:title="@string/title_showalt_preference" android:defaultValue="false"
+			android:summary="@string/summary_showalt_preference" />
+			
+		<ListPreference android:key="distunits"
+			android:title="@string/title_distunit_preference" 
+			android:summary="@string/summary_distunit_preference"
+			android:defaultValue="metric"
+            android:entries="@array/distunitarray"
+            android:entryValues="@array/distunitarray" />
+	</PreferenceCategory>
+
+</PreferenceScreen>

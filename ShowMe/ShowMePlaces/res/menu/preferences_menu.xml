@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:title="@string/preferences" android:titleCondensed="@string/preferences" android:enabled="true" android:visible="true" android:id="@+id/preferences_menutitem"></item>
+    <item android:id="@+id/mapoverlay" android:title="Map Overlay" android:enabled="true" android:visible="true"></item>
+    <item android:id="@+id/fovcalibrate" android:title="FOV calibrate" android:enabled="true" android:visible="true"></item>
+    <item android:id="@+id/help" android:title="Help" android:enabled="true" android:visible="true"></item>
+    <item android:id="@+id/about" android:title="About" android:enabled="true" android:visible="true"></item>
+    <item android:id="@+id/exit" android:title="Exit" android:enabled="true" android:visible="true"></item>
+</menu>
