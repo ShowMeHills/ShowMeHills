@@ -1,3 +1,32 @@
+/*
+
+Quick and dirty file to extract longitude and latitude values from openstreetmap (osm) files.
+
+The osm files are downloaded from http://downloads.cloudmade.com/ and are generally huge.
+Usually they are named like;
+europe.osm.bz2.part.00 (3814.7M)
+europe.osm.bz2.part.01 (3814.7M)
+europe.osm.bz2.part.02 (2147.3M) 
+
+so need to concat files together before gunzip2'ing them (on linux that's cat file1 file2 file3 > op.osm.bz2  with part.00 first)
+
+once concatenated & unzipped you end up with one humongous file that too big for fstream to handle well, so use split 
+to break up again, ie;
+
+split -b 1G europe.osm
+
+the default names is xaa, xab, xac etc, which gives the stupid array below. I could make this neater obv...
+
+So to parse the files do;
+
+parseosm europe.osm
+
+The parameter is merely used to create the output filenames (initially it opened the osm file), so this could be neater too...
+
+Nik
+
+*/
+
 // reading a text file
 #include <iostream>
 #include <fstream>
@@ -158,12 +187,15 @@ cout << "array is " << maxf << endl;
 			}
 		    if (	ltrim(tmpline).compare(0, 5, "<node")  == 0 || 
 				ltrim(tmpline).compare(0, 4, "<way")  == 0 ||
+				ltrim(tmpline).compare(0, 4, "<rel")  == 0 ||
+				ltrim(tmpline).compare(0, 5, "</rel")  == 0 ||
 				ltrim(tmpline).compare(0, 5, "</way") == 0)
 		    {
 			    line = "";
 			    loops = 0;
 		    }
-		    else if (ltrim(tmpline).compare(0, 4, "<nd ")  == 0)
+		    else if (ltrim(tmpline).compare(0, 4, "<nd ")  == 0 ||
+			        ltrim(tmpline).compare(0, 4, "<mem")  == 0)
 		    {
 		    }
 		    else
