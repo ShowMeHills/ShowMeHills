@@ -40,7 +40,7 @@ import android.util.Log;
 
 	public class HillDatabase extends SQLiteOpenHelper{
 		private static String DB_PATH = "/data/data/com.showmehills/databases/";		 
-	    private static String DB_NAME = "hills.db";	 
+	    private static String DB_NAME = "hillsv1.db";	 
 	    private SQLiteDatabase myDataBase; 	 
 	    private final Context myContext;
 	    
@@ -55,17 +55,17 @@ import android.util.Log;
 	    	// made some changes in the database, but need to update it in existing installs!
 	    	// so need to add a version number
 	    	// for now just update db every time
-	    //	boolean dbExist = checkDataBase();	 
-	    //	if(dbExist){
+	    	boolean dbExist = checkDataBase();	 
+	    	if(dbExist){
 	    		//do nothing - database already exist
-	    //	}else{	 
+	    	}else{	 
 	        	this.getReadableDatabase();	 
 	        	try {	 
 	    			copyDataBase();	 
 	    		} catch (IOException e) {	 
 	        		throw new Error("Error copying database");	 
 	        	}
-	    //	}	 
+	    	}	 
 	    }
 	 
 	    private boolean checkDataBase(){	 

@@ -63,7 +63,7 @@ android:layout_height="wrap_content"
 android:gravity="left"/>
 
 <TextView
-android:text="European continental peaks provided by Mayeul Kauffmann from http://www.outdoormaps.org and http://openstreetmap.org"
+android:text="GPS information on peaks is provided by http://www.outdoormaps.org and http://openstreetmap.org - special thanks to Mayeul Kauffmann"
 android:background="#A0402020"
 android:autoLink="web"
 android:layout_width="wrap_content"

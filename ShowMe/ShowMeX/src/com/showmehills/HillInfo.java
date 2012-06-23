@@ -60,12 +60,19 @@ public class HillInfo extends Activity{
 			t.setText(n);
 			
 			t = (TextView) findViewById(R.id.hillheight);
-			double h = cursor.getDouble(cursor.getColumnIndex("metres"));
-			t.setText(""+h);
+			double h = cursor.getDouble(cursor.getColumnIndex("height"));
+			if (h>0)
+			{
+				t.setText(""+h);
+			}
+			else
+			{
+				t.setText("");
+			}
 			
 			t = (TextView) findViewById(R.id.infolink);
 			n = cursor.getString(cursor.getColumnIndex("link"));
-			t.setText("web: "+n);
+			t.setText("web: http://www.openstreetmap.org/browse/node/"+n);
 			
 		}
 		else
