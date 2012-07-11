@@ -599,9 +599,12 @@ public class ShowMeHillsActivity extends Activity implements LocationListener, S
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 	
 	public void onSensorChanged(SensorEvent event) {
-		if (event.accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE) {
+		/*
+		 * this is preventing the compass working under certain conditions
+		 if (event.accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE) {
 			return;
 		}
+		*/
 
 		if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)  mGravity = event.values;
 		if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) mGeomagnetic = event.values;
