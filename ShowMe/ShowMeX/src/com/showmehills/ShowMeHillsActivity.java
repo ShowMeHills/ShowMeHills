@@ -56,19 +56,19 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 
-public class ShowMeHillsActivity extends Activity implements LocationListener, SensorEventListener, OnTouchListener {
+public class ShowMeHillsActivity extends Activity implements SensorEventListener, OnTouchListener {
 
 	public float hfov = (float) 50.2;
 	public float vfov = (float) 20.0;
 	private SensorManager mSensorManager;
-	private LocationManager mLocationManager;
+	private RapidGPSLock mGPS;
 	private PowerManager.WakeLock wl;
 	Sensor accelerometer;
 	Sensor magnetometer;  
 	float[] mGravity;
 	float[] mGeomagnetic;
 
-	private Location curLocation;
+	//private Location curLocation;
 	private String acc = "";
 	private boolean badsensor = false;
 	private boolean isCalibrated = false;
@@ -130,37 +130,14 @@ public class ShowMeHillsActivity extends Activity implements LocationListener, S
 		showhelp = prefs.getBoolean("showhelp", true);
 	}
 
-	void RegisterListeners()
-	{
-
-		Criteria fine = new Criteria();
-		fine.setAccuracy(Criteria.ACCURACY_COARSE);
-		
-		// Get at least something from the device,
-		// could be very inaccurate though
-		if (mLocationManager.getBestProvider(fine, true) != null)
-		{
-			try {
-				curLocation = mLocationManager.getLastKnownLocation(mLocationManager.getBestProvider(fine, true));
-			}
-			catch(Exception e)
-			 {
-				Log.e("showmehills", "location manager: " + e.getMessage());
-			 }			
-		}
-
-		mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
-		mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI);	 
-
-		mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0.0F, this); 
-		mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0L, 0.0F, this); 
-	}
-
 	@Override
 	protected void onResume() {
 		Log.d("showmehills", "onResume");
 		super.onResume();
-		RegisterListeners();
+
+		mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
+		mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI);	 
+		mGPS.switchOn();
 		getPrefs();
 		wl.acquire();
 		try {	 
@@ -174,7 +151,7 @@ public class ShowMeHillsActivity extends Activity implements LocationListener, S
 	protected void onPause() {
 		Log.d("showmehills", "onPause");
 		super.onPause();
-		mLocationManager.removeUpdates(this);    
+		mGPS.switchOff(); 
 		mSensorManager.unregisterListener(this);
 		wl.release();
 		try {	 
@@ -205,9 +182,10 @@ public class ShowMeHillsActivity extends Activity implements LocationListener, S
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wl = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK, "My Tag");
         //wl.acquire();
-
+        mGPS = new RapidGPSLock(this);
+        mGPS.switchOn();
+        mGPS.findLocation();
 		mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
-		mLocationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 
 		accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		magnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
@@ -222,10 +200,6 @@ public class ShowMeHillsActivity extends Activity implements LocationListener, S
 		Display display = getWindowManager().getDefaultDisplay(); 
 		scrwidth = display.getWidth();
 		scrheight = display.getHeight();
-		curLocation = new Location("dummyprovider");
-
-		curLocation.setLatitude(46.283280);
-		curLocation.setLongitude(7.535612);
 
 		cv = new CameraPreviewSurface( this.getApplicationContext(), this);
 		FrameLayout rl = new FrameLayout( this.getApplicationContext());		
@@ -262,6 +236,7 @@ public class ShowMeHillsActivity extends Activity implements LocationListener, S
 			Intent settingsActivity = new Intent(getBaseContext(),AppPreferences.class);
 			startActivity(settingsActivity);
 		} else if (item.getItemId() == R.id.mapoverlay) {
+			Location curLocation = mGPS.getCurrentLocation();
 			myDbHelper.SetDirections(curLocation);
 			editor.putFloat("longitude", (float)curLocation.getLongitude());
 			editor.putFloat("latitude", (float)curLocation.getLatitude());
@@ -573,12 +548,27 @@ public class ShowMeHillsActivity extends Activity implements LocationListener, S
 			{
 				canvas.drawText( "Recalibrate sensor!", 10, 80, paint);	
 			}
+			Location curLocation = mGPS.getCurrentLocation();
 			if (curLocation == null || curLocation.getAccuracy() > 200)
 			{
 				if (curLocation == null || acc=="") basetext = "No GPS position yet";
 				else if (curLocation.getAccuracy() > 200) basetext = "Warning - GPS position too inaccurate";
 				canvas.drawText( basetext, scrwidth/2, scrheight/2, strokePaint);
 				canvas.drawText( basetext, scrwidth/2, scrheight/2, textPaint);	
+			}
+			else
+			{
+				acc = "+/- ";
+				if (typeunits) 
+				{
+					acc += (int)curLocation.getAccuracy();
+					acc+= "m"; 
+				}
+				else
+				{
+					acc+=(int)(curLocation.getAccuracy()*3.2808399);
+					acc+="ft";
+				}
 			}
 			int va = fd.GetVariation();
 			variationPaint.setARGB(255, 255, 0, 0);
@@ -653,67 +643,6 @@ public class ShowMeHillsActivity extends Activity implements LocationListener, S
 			}
 			mDraw.invalidate();		
 		}
-	}
-
-	public void onLocationChanged(Location location) {
-
-		Log.d("showmehills", "onLocationChanged");
-		boolean locationChanged = false; 
-
-		if(curLocation == null)
-		{
-			Log.d("showmehills", "curlocation null");
-			curLocation = location;
-			locationChanged = true;
-		}
-		else if(curLocation.getLatitude() == location.getLatitude() &&
-				curLocation.getLongitude() == location.getLongitude())
-		{
-			Log.d("showmehills", "same ol location " + curLocation.getLatitude() + " " + curLocation.getLongitude());
-			locationChanged = false;
-		}
-		else
-		{
-			Log.d("showmehills", "new location!");
-			locationChanged = true;
-		}
-
-		if (locationChanged)
-		{			
-			curLocation = location;
-			myDbHelper.SetDirections(curLocation);
-			acc = "+/- ";
-			if (typeunits) 
-			{
-				acc += (int)curLocation.getAccuracy();
-				acc+= "m"; 
-			}
-			else
-			{
-				acc+=(int)(curLocation.getAccuracy()*3.2808399);
-				acc+="ft";
-			}
-			GeomagneticField geoField = new GeomagneticField(
-		             Double.valueOf(curLocation.getLatitude()).floatValue(),
-		             Double.valueOf(curLocation.getLongitude()).floatValue(),
-		             Double.valueOf(curLocation.getAltitude()).floatValue(),
-		             System.currentTimeMillis());
-
-			mDeclination = (float)geoField.getDeclination();
-			
-			Log.d("showmehills", "setting new loc");
-			mDraw.invalidate();
-		}
-
-	}
-	public void onProviderDisabled(String provider) {
-
-	}
-	public void onProviderEnabled(String provider) {
-
-	}
-	public void onStatusChanged(String provider, int status, Bundle extras) {
-
 	}
 
 	public boolean onTouch(View v, MotionEvent event) {
