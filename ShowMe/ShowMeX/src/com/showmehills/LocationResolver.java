@@ -4,6 +4,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.util.Log;
 
 public class LocationResolver implements LocationListener 
 {
@@ -17,6 +18,7 @@ public class LocationResolver implements LocationListener
 		this.locationMgrImpl = locationMgrImpl;
 	}
 	public void onLocationChanged(Location location) {
+		Log.d("showmehills", "new location " + location.getAccuracy() + " " + location.getLatitude() + "," + location.getLongitude());
 		lm.removeUpdates(this);
 		locationMgrImpl.locationCallback(provider);
 	}

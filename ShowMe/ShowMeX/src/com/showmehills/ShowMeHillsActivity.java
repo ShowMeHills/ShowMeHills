@@ -36,6 +36,8 @@ package com.showmehills;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import com.showmehills.R;
 
@@ -68,6 +70,8 @@ public class ShowMeHillsActivity extends Activity implements SensorEventListener
 	float[] mGravity;
 	float[] mGeomagnetic;
 
+	Timer timer = new Timer();
+	
 	//private Location curLocation;
 	private String acc = "";
 	private boolean badsensor = false;
@@ -98,7 +102,7 @@ public class ShowMeHillsActivity extends Activity implements SensorEventListener
 	boolean typeunits = false; // true for metric, false for imperial
 	boolean showheight = false;
 	boolean showhelp = true;
-
+	
 	public class HillMarker
 	{
 		public HillMarker(int id, Rect loc) { location = loc; hillid=id; }
@@ -185,6 +189,8 @@ public class ShowMeHillsActivity extends Activity implements SensorEventListener
         mGPS = new RapidGPSLock(this);
         mGPS.switchOn();
         mGPS.findLocation();
+		timer.scheduleAtFixedRate(new LocationTimerTask(),20* 1000,20* 1000); //wait 20 seconds for the location updates to find the location
+
 		mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
 
 		accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -549,14 +555,7 @@ public class ShowMeHillsActivity extends Activity implements SensorEventListener
 				canvas.drawText( "Recalibrate sensor!", 10, 80, paint);	
 			}
 			Location curLocation = mGPS.getCurrentLocation();
-			if (curLocation == null || curLocation.getAccuracy() > 200)
-			{
-				if (curLocation == null || acc=="") basetext = "No GPS position yet";
-				else if (curLocation.getAccuracy() > 200) basetext = "Warning - GPS position too inaccurate";
-				canvas.drawText( basetext, scrwidth/2, scrheight/2, strokePaint);
-				canvas.drawText( basetext, scrwidth/2, scrheight/2, textPaint);	
-			}
-			else
+			if (curLocation != null)
 			{
 				acc = "+/- ";
 				if (typeunits) 
@@ -568,8 +567,16 @@ public class ShowMeHillsActivity extends Activity implements SensorEventListener
 				{
 					acc+=(int)(curLocation.getAccuracy()*3.2808399);
 					acc+="ft";
-				}
+				}				
 			}
+			if (curLocation == null || curLocation.getAccuracy() > 200)
+			{
+				if (curLocation == null || acc=="") basetext = "No GPS position yet";
+				else if (curLocation.getAccuracy() > 200) basetext = "Warning - GPS position too inaccurate";
+				canvas.drawText( basetext, scrwidth/2, scrheight/2, strokePaint);
+				canvas.drawText( basetext, scrwidth/2, scrheight/2, textPaint);	
+			}
+			
 			int va = fd.GetVariation();
 			variationPaint.setARGB(255, 255, 0, 0);
 			variationPaint.setStrokeWidth(4);
@@ -717,6 +724,20 @@ public class ShowMeHillsActivity extends Activity implements SensorEventListener
 		}
 	   return super.onKeyUp(keyCode, event);
 	   }
+
+	class LocationTimerTask extends TimerTask 
+	{
+		@Override
+		public void run() 
+		{
+			Log.d("showmehills", "renew GPS search");
+			runOnUiThread(new Runnable() {
+				  public void run() {
+					  mGPS.RenewLocation();
+				  }
+			});
+		}
+	}
 }
 
 

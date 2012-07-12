@@ -3,6 +3,7 @@ package com.showmehills;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
+import android.util.Log;
 
 public class LocationObserver implements LocationListener {
 
@@ -14,7 +15,8 @@ public class LocationObserver implements LocationListener {
 	}
 	
 	public void onLocationChanged(Location location) {
-		try {			
+		try {
+			Log.d("showmehills", "new location(ob) " + location.getAccuracy() + " " + location.getLatitude() + "," + location.getLongitude());
 			myController.setPosition(location);
 		} catch (Exception ex) 
 		{

@@ -2,8 +2,6 @@ package com.showmehills;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import android.content.Context;
 import android.location.Location;
@@ -77,7 +75,6 @@ public class RapidGPSLock {
 	
 	private void requestBestLocationUpdates() 
 	{
-		Timer timer = new Timer();
 		for (String p : mLocationManager.getAllProviders()) 
 		{
 			if(mLocationManager.isProviderEnabled(p))
@@ -87,7 +84,6 @@ public class RapidGPSLock {
 				mLocationManager.requestLocationUpdates(p, 0, 0, lr);
 			}
 		}
-		timer.schedule(new LocationTimerTask(),20* 1000); //wait 20 seconds for the location updates to find the location
 	}
 	
 	public void setLocationAtLastDownload(Location locationAtLastDownload) 
@@ -142,33 +138,24 @@ public class RapidGPSLock {
 	private synchronized LocationObserver getObserver() {
 		return lob;
 	}
-	
-	class LocationTimerTask extends TimerTask 
-	{
-		@Override
-		public void run() 
+	public void RenewLocation() {
+		
+		if(bestLocationProvider != null)
 		{
 			//remove all location updates
 			for(LocationResolver locationResolver: locationResolvers)
 			{
 				mLocationManager.removeUpdates(locationResolver);
 			}
-			if(bestLocationProvider != null)
-			{
-				mLocationManager.removeUpdates(getObserver());
-				state=LocationFinderState.Confused;
-				mixContext.runOnUiThread(new Runnable() {	
-				public void run() 
-					{
-						mLocationManager.requestLocationUpdates(bestLocationProvider, freq, dist, getObserver());	
-					}
-				});
-				state=LocationFinderState.Active;
-			}
-			else
-			{ //no location found
-				
-			}
+			mLocationManager.removeUpdates(getObserver());
+			state=LocationFinderState.Confused;
+			requestBestLocationUpdates();
+			
+			state=LocationFinderState.Active;
+		}
+		else
+		{ //no location found
+			
 		}
 	}
 }
