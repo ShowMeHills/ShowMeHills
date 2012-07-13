@@ -152,7 +152,7 @@ import android.util.Log;
 					}			
 	        	} while (cursor.moveToNext());
 	        }
-	        
+	        Log.d("showmehills", "Added " + localhills.size() + " markers");
 /*
 			localhills.add(new Hills(0,"London Eye",   -0.119700, 51.5033,   135));
 			localhills.add(new Hills(0,"Shard",        -0.086667, 51.504444, 308));

@@ -71,6 +71,7 @@ public class RapidGPSLock {
 			bestLocationProvider = provider;
 		}
 		setLocationAtLastDownload(curLoc);	
+		mixContext.UpdateMarkers();
 	}
 	
 	private void requestBestLocationUpdates() 

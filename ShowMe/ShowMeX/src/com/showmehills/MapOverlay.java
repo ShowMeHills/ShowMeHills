@@ -79,8 +79,8 @@ public class MapOverlay  extends MapActivity implements SensorEventListener {
 		accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		magnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
-		mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
-		mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI);	 
+		mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
+		mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_GAME);	 
 
         myDbHelper = new HillDatabase(this); 
         try { 
@@ -106,8 +106,8 @@ public class MapOverlay  extends MapActivity implements SensorEventListener {
 		Log.d("showmehills", "onResume");
 		super.onResume();
 
-		mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
-		mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI);	 
+		mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
+		mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_GAME);	 
 
 		try {	 
 			myDbHelper.openDataBase();	 
@@ -240,9 +240,9 @@ public class MapOverlay  extends MapActivity implements SensorEventListener {
 		
 	}
 	public void onSensorChanged(SensorEvent event) {
-		if (event.accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE) {
+		/*if (event.accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE) {
 			return;
-		}
+		}*/
 
 		if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)  mGravity = event.values;
 		if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) mGeomagnetic = event.values;

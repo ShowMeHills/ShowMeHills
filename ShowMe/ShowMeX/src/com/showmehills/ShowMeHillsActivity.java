@@ -71,6 +71,8 @@ public class ShowMeHillsActivity extends Activity implements SensorEventListener
 	float[] mGeomagnetic;
 
 	Timer timer = new Timer();
+	private int GPSretryTime = 15;
+	private int CompassSmoothingWindow = 50;
 	
 	//private Location curLocation;
 	private String acc = "";
@@ -139,8 +141,8 @@ public class ShowMeHillsActivity extends Activity implements SensorEventListener
 		Log.d("showmehills", "onResume");
 		super.onResume();
 
-		mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
-		mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI);	 
+		mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
+		mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_GAME);	 
 		mGPS.switchOn();
 		getPrefs();
 		wl.acquire();
@@ -189,7 +191,7 @@ public class ShowMeHillsActivity extends Activity implements SensorEventListener
         mGPS = new RapidGPSLock(this);
         mGPS.switchOn();
         mGPS.findLocation();
-		timer.scheduleAtFixedRate(new LocationTimerTask(),20* 1000,20* 1000); //wait 20 seconds for the location updates to find the location
+		timer.scheduleAtFixedRate(new LocationTimerTask(),GPSretryTime* 1000,GPSretryTime* 1000);
 
 		mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
 
@@ -266,27 +268,34 @@ public class ShowMeHillsActivity extends Activity implements SensorEventListener
 		return super.onOptionsItemSelected(item);
 	}
 
+	public void UpdateMarkers()
+	{
+		Location curLocation = mGPS.getCurrentLocation();
+		myDbHelper.SetDirections(curLocation);
+	}
+	
 	class filteredDirection
 	{
-		int AVERAGINGWINDOW = 10;
 		double dir;
-		double sinevalues[] = new double[AVERAGINGWINDOW];
-		double cosvalues[] = new double[AVERAGINGWINDOW];
+		double sinevalues[] = new double[CompassSmoothingWindow];
+		double cosvalues[] = new double[CompassSmoothingWindow];
 		int index = 0;
+		int outlierCount = 0;
+		
 		void AddLatest( double d )
 		{
 			sinevalues[index] = Math.sin(d);
 			cosvalues[index] = Math.cos(d);
 			index++;
-			if (index > AVERAGINGWINDOW - 1) index = 0;
+			if (index > CompassSmoothingWindow - 1) index = 0;
 			double sumc = 0; 
 			double sums = 0;
-			for (int a = 0; a < AVERAGINGWINDOW; a++) 
+			for (int a = 0; a < CompassSmoothingWindow; a++) 
 			{
 				sumc += cosvalues[a];
 				sums += sinevalues[a];
 			}
-			dir = Math.atan2(sums/AVERAGINGWINDOW,sumc/AVERAGINGWINDOW);
+			dir = Math.atan2(sums/CompassSmoothingWindow,sumc/CompassSmoothingWindow);
 		}
 		
 		double getDirection() 
@@ -303,24 +312,24 @@ public class ShowMeHillsActivity extends Activity implements SensorEventListener
 			double Q = 0;
 			double sumc = 0; 
 			double sums = 0;
-			for (int a = 0; a < AVERAGINGWINDOW; a++)
+			for (int a = 0; a < CompassSmoothingWindow; a++)
 			{
 				sumc += cosvalues[a];
 				sums += sinevalues[a];
 			}
-			double avgc = sumc/AVERAGINGWINDOW;
-			double avgs = sums/AVERAGINGWINDOW;
+			double avgc = sumc/CompassSmoothingWindow;
+			double avgs = sums/CompassSmoothingWindow;
 
 			sumc = 0; 
 			sums = 0;
-			for (int a = 0; a < AVERAGINGWINDOW; a++)
+			for (int a = 0; a < CompassSmoothingWindow; a++)
 			{
 				sumc += Math.pow(cosvalues[a] - avgc, 2);
 				sums += Math.pow(sinevalues[a] - avgs, 2);
 			}
-			Q = (sumc/(AVERAGINGWINDOW-1)) + (sums/(AVERAGINGWINDOW-1));
+			Q = (sumc/(CompassSmoothingWindow-1)) + (sums/(CompassSmoothingWindow-1));
 			
-			return (int)(Q*10000);
+			return (int)(Q*1000);
 		}
 	}
 	
