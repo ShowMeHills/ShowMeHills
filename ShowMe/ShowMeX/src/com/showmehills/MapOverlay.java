@@ -22,32 +22,25 @@ package com.showmehills;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import android.content.Context;
 import android.content.Intent;
 import android.database.SQLException;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Matrix;
-import android.graphics.Point;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.PowerManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.Surface;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
@@ -56,19 +49,28 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
 import com.showmehills.R;
+import com.showmehills.ShowMeHillsActivity.LocationTimerTask;
 
-public class MapOverlay  extends MapActivity implements SensorEventListener {
+public class MapOverlay extends MapActivity implements IShowMeHillsActivity, SensorEventListener {
 	
 	private HillDatabase myDbHelper;
 	private Location curLocation;
 	MapOverlayCompassItem compassOverlay;
 
+	private RapidGPSLock mGPS;
 	private SensorManager mSensorManager;
 	Sensor accelerometer;
 	Sensor magnetometer;  
 	float[] mGravity;
 	float[] mGeomagnetic;
 	float mDeclination = 0;
+	int minLat = 0;
+    int maxLat = 0;
+    int minLon = 0;
+    int maxLon = 0;
+    
+	Timer timer = new Timer();
+	private int GPSretryTime = 15;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -81,7 +83,11 @@ public class MapOverlay  extends MapActivity implements SensorEventListener {
 
 		mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
 		mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_GAME);	 
-
+		
+		mGPS = new RapidGPSLock(this);
+        mGPS.switchOn();
+        mGPS.findLocation();
+        
         myDbHelper = new HillDatabase(this); 
         try { 
         	myDbHelper.createDataBase(); 
@@ -97,18 +103,27 @@ public class MapOverlay  extends MapActivity implements SensorEventListener {
         setContentView(R.layout.mapoverlay);
         MapView mapView = (MapView) findViewById(R.id.mapview);
         mapView.setBuiltInZoomControls(true);
-        AddItems();
+        UpdateMarkers();
+        MapController mc = mapView.getController();
+		double fitFactor = 1.5;
+        mc.zoomToSpan((int) (Math.abs(maxLat - minLat) * fitFactor), (int)(Math.abs(maxLon - minLon) * fitFactor));
+        mc.animateTo(new GeoPoint( (maxLat + minLat)/2, (maxLon + minLon)/2 ));
         
+		timer.scheduleAtFixedRate(new LocationTimerTask(),GPSretryTime* 1000,GPSretryTime* 1000);
     }	
-
+	
 	@Override
 	protected void onResume() {
 		Log.d("showmehills", "onResume");
 		super.onResume();
-
+		mGPS.switchOn();
 		mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
 		mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_GAME);	 
 
+		timer = new Timer();
+		timer.scheduleAtFixedRate(new LocationTimerTask(),GPSretryTime* 1000,GPSretryTime* 1000);
+
+		UpdateMarkers();
 		try {	 
 			myDbHelper.openDataBase();	 
 		}catch(SQLException sqle){	 
@@ -119,7 +134,9 @@ public class MapOverlay  extends MapActivity implements SensorEventListener {
 	@Override
 	protected void onPause() {
 		Log.d("showmehills", "onPause");
-		super.onPause();   
+		super.onPause(); 
+		timer.cancel();
+		mGPS.switchOff(); 
 		mSensorManager.unregisterListener(this);
 		
 		try {	 
@@ -139,33 +156,14 @@ public class MapOverlay  extends MapActivity implements SensorEventListener {
 		super.onStop();
 	}
 
-	
-	void AddItems()
+	public void UpdateMarkers()
 	{
-
-        Criteria fine = new Criteria();
-		fine.setAccuracy(Criteria.ACCURACY_FINE);
-
-		LocationManager mLocationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        curLocation = mLocationManager.getLastKnownLocation(mLocationManager.getBestProvider(fine, true));
-        if (curLocation == null) 
-        {
-
-    		fine.setAccuracy(Criteria.ACCURACY_COARSE);
-
-    		mLocationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-            curLocation = mLocationManager.getLastKnownLocation(mLocationManager.getBestProvider(fine, true));
-            if (curLocation == null) 
-            {
-            	//give up
-            	return;
-            }
-        }
+        curLocation = mGPS.getCurrentLocation();
         myDbHelper.SetDirections(curLocation);
         
         MapView mapView = (MapView) findViewById(R.id.mapview);
         List<Overlay> mapOverlays = mapView.getOverlays();
-
+        mapOverlays.clear();
         Drawable barrw = this.getResources().getDrawable(R.drawable.bluearrow);
         compassOverlay = new MapOverlayCompassItem(barrw, this);
 
@@ -175,11 +173,11 @@ public class MapOverlay  extends MapActivity implements SensorEventListener {
         mapOverlays.add(compassOverlay);
         Drawable drawable = this.getResources().getDrawable(R.drawable.androidmarker);
         
-        int minLat = Integer.MAX_VALUE;
-        int maxLat = Integer.MIN_VALUE;
-        int minLon = Integer.MAX_VALUE;
-        int maxLon = Integer.MIN_VALUE;
-
+        minLat = (int) ((curLocation.getLatitude() - 0.01)*1E6);
+        maxLat = (int) ((curLocation.getLatitude() + 0.01)*1E6);
+        minLon = (int) ((curLocation.getLongitude() - 0.01)*1E6);
+        maxLon = (int) ((curLocation.getLongitude() + 0.01)*1E6);
+        Log.d("showmehills", "map lon-lat = " + minLat + "," + minLon);
 	    ArrayList<Hills> localhills = myDbHelper.localhills;
 		for (int h = 0; h < localhills.size(); h++)
 		{
@@ -196,12 +194,7 @@ public class MapOverlay  extends MapActivity implements SensorEventListener {
             minLat = Math.min(point.getLatitudeE6(), minLat);
             maxLon = Math.max(point.getLongitudeE6(), maxLon);
             minLon = Math.min(point.getLongitudeE6(), minLon);
-		}
-		MapController mc = mapView.getController();
-		double fitFactor = 1.5;
-        mc.zoomToSpan((int) (Math.abs(maxLat - minLat) * fitFactor), (int)(Math.abs(maxLon - minLon) * fitFactor));
-        mc.animateTo(new GeoPoint( (maxLat + minLat)/2, (maxLon + minLon)/2 ));
-        
+		}       
 	}
 
 	@Override
@@ -232,13 +225,12 @@ public class MapOverlay  extends MapActivity implements SensorEventListener {
 
 	@Override
 	protected boolean isRouteDisplayed() {
-		// TODO Auto-generated method stub
 		return false;
 	}
-	public void onAccuracyChanged(Sensor sensor, int accuracy) {
-		// TODO Auto-generated method stub
-		
+	
+	public void onAccuracyChanged(Sensor sensor, int accuracy) {		
 	}
+	
 	public void onSensorChanged(SensorEvent event) {
 		/*if (event.accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE) {
 			return;
@@ -266,6 +258,24 @@ public class MapOverlay  extends MapActivity implements SensorEventListener {
 			        mapView.invalidate();
 				}
 			}
+		}
+	}
+
+	public LocationManager GetLocationManager() {
+		return (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+	}
+	
+	class LocationTimerTask extends TimerTask 
+	{
+		@Override
+		public void run() 
+		{
+			Log.d("showmehills", "renew GPS search");
+			runOnUiThread(new Runnable() {
+				  public void run() {
+					  mGPS.RenewLocation();
+				  }
+			});
 		}
 	}
 }

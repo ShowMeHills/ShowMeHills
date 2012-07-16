@@ -58,7 +58,7 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 
-public class ShowMeHillsActivity extends Activity implements SensorEventListener, OnTouchListener {
+public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivity, SensorEventListener, OnTouchListener {
 
 	public float hfov = (float) 50.2;
 	public float vfov = (float) 20.0;
@@ -71,7 +71,7 @@ public class ShowMeHillsActivity extends Activity implements SensorEventListener
 	float[] mGeomagnetic;
 
 	Timer timer = new Timer();
-	private int GPSretryTime = 15;
+	private int GPSretryTime = 60;
 	private int CompassSmoothingWindow = 50;
 	
 	//private Location curLocation;
@@ -90,6 +90,7 @@ public class ShowMeHillsActivity extends Activity implements SensorEventListener
 
 	public int scrwidth = 10;
 	public int scrheight = 10;
+	private int mMainTextSize = 20;
 	public static CameraPreviewSurface cv;
 	public DrawOnTop mDraw;
 	private HillDatabase myDbHelper;
@@ -146,6 +147,9 @@ public class ShowMeHillsActivity extends Activity implements SensorEventListener
 		mGPS.switchOn();
 		getPrefs();
 		wl.acquire();
+		timer = new Timer();
+		timer.scheduleAtFixedRate(new LocationTimerTask(),GPSretryTime* 1000,GPSretryTime* 1000);
+		UpdateMarkers();
 		try {	 
 			myDbHelper.openDataBase();	 
 		}catch(SQLException sqle){	 
@@ -157,6 +161,7 @@ public class ShowMeHillsActivity extends Activity implements SensorEventListener
 	protected void onPause() {
 		Log.d("showmehills", "onPause");
 		super.onPause();
+		timer.cancel();
 		mGPS.switchOff(); 
 		mSensorManager.unregisterListener(this);
 		wl.release();
@@ -170,6 +175,9 @@ public class ShowMeHillsActivity extends Activity implements SensorEventListener
 	protected void onStop()
 	{
 		try {	 
+			mGPS.switchOff(); 
+			mSensorManager.unregisterListener(this);
+			//wl.release();
 			myDbHelper.close();	 
 		}catch(SQLException sqle){	 
 			throw sqle;	 
@@ -271,7 +279,10 @@ public class ShowMeHillsActivity extends Activity implements SensorEventListener
 	public void UpdateMarkers()
 	{
 		Location curLocation = mGPS.getCurrentLocation();
-		myDbHelper.SetDirections(curLocation);
+		if (curLocation != null)
+		{
+			myDbHelper.SetDirections(curLocation);
+		}
 	}
 	
 	class filteredDirection
@@ -389,18 +400,17 @@ public class ShowMeHillsActivity extends Activity implements SensorEventListener
 			{
 				// adjust text to fit any screen - lol, so hacky :-D
 				boolean happyWithSize = false;
-				int txtSize = 20;
 				do
 				{
-					textPaint.setTextSize(txtSize);
+					textPaint.setTextSize(mMainTextSize);
 					float sz = textPaint.measureText("screen, wait for stabilisation, and tap again.");
 					if (sz > scrwidth*0.7 )
 					{
-						txtSize--;
+						mMainTextSize--;
 					}
 					else if (sz < scrwidth*0.6)
 					{
-						txtSize++;
+						mMainTextSize++;
 					}
 					else
 					{
@@ -572,8 +582,8 @@ public class ShowMeHillsActivity extends Activity implements SensorEventListener
 				drawtextsize -= 1;
 			}
 
-			textPaint.setTextSize(25);
-			strokePaint.setTextSize(25);
+			textPaint.setTextSize(mMainTextSize);
+			strokePaint.setTextSize(mMainTextSize);
 			textPaint.setARGB(255, 255, 255, 255);				
 			strokePaint.setARGB(255, 0, 0, 0);
 			
@@ -773,6 +783,11 @@ public class ShowMeHillsActivity extends Activity implements SensorEventListener
 				  }
 			});
 		}
+	}
+
+
+	public LocationManager GetLocationManager() {
+		return (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 	}
 }
 

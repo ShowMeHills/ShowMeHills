@@ -1,16 +1,36 @@
+/*
+    Copyright 2012 Nik Cain nik@showmehills.com
+    
+    This file is part of ShowMeHills.
+
+    ShowMeHills is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    ShowMeHills is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with ShowMeHills.  If not, see <http://www.gnu.org/licenses/>.
+    
+    This source originated from mixare, another GPL project.
+ */
 package com.showmehills;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import android.content.Context;
 import android.location.Location;
 import android.location.LocationManager;
 import android.location.Criteria;
+import android.util.Log;
 
 public class RapidGPSLock {
 
-	private ShowMeHillsActivity mixContext;
+	private IShowMeHillsActivity mixContext;
 	private LocationManager mLocationManager;
 	private Location curLoc;
 	private String bestLocationProvider;
@@ -18,8 +38,6 @@ public class RapidGPSLock {
 	private LocationFinderState state;
 	private final LocationObserver lob;
 	private List<LocationResolver> locationResolvers;
-	private final long freq = 5000; // 5 seconds
-	private final float dist = 20; // 20 meters
 
 	public enum LocationFinderState {
 		Active, // Providing Location Information
@@ -27,7 +45,7 @@ public class RapidGPSLock {
 		Confused // Same problem in internal state
 	}
 	
-	public RapidGPSLock(ShowMeHillsActivity mixContext) {
+	public RapidGPSLock(IShowMeHillsActivity mixContext) {
 		this.mixContext = mixContext;
 		this.lob = new LocationObserver(this);
 		this.state = LocationFinderState.Inactive;
@@ -64,27 +82,35 @@ public class RapidGPSLock {
 			{
 				curLoc = foundLocation;
 				bestLocationProvider = provider;
+				mixContext.UpdateMarkers();
 			}
 		} else 
 		{
 			curLoc = foundLocation;
 			bestLocationProvider = provider;
+			mixContext.UpdateMarkers();
 		}
 		setLocationAtLastDownload(curLoc);	
-		mixContext.UpdateMarkers();
 	}
 	
 	private void requestBestLocationUpdates() 
 	{
-		for (String p : mLocationManager.getAllProviders()) 
+		for(LocationResolver locationResolver: locationResolvers)
+		{
+			Log.d("showmehills", "adding resolver (" + locationResolver.provider + " "+ locationResolver.hashCode()+")");
+			mLocationManager.requestLocationUpdates(locationResolver.provider, 0, 0, locationResolver);
+		}
+		/*for (String p : mLocationManager.getAllProviders()) 
 		{
 			if(mLocationManager.isProviderEnabled(p))
-			{
+			{				
 				LocationResolver lr = new LocationResolver(mLocationManager, p, this);
+				Log.d("showmehills", "adding resolver (" + p + " "+ lr.hashCode()+")");
+				
 				locationResolvers.add(lr);
 				mLocationManager.requestLocationUpdates(p, 0, 0, lr);
 			}
-		}
+		}*/
 	}
 	
 	public void setLocationAtLastDownload(Location locationAtLastDownload) 
@@ -121,7 +147,18 @@ public class RapidGPSLock {
 
 	public void switchOn() {
 		if (!LocationFinderState.Active.equals(state)) {
-			mLocationManager = (LocationManager) mixContext.getSystemService(Context.LOCATION_SERVICE);
+			mLocationManager = mixContext.GetLocationManager();
+			locationResolvers.clear();
+			for (String p : mLocationManager.getAllProviders()) 
+			{
+				if(mLocationManager.isProviderEnabled(p))
+				{				
+					LocationResolver lr = new LocationResolver(mLocationManager, p, this);
+					Log.d("showmehills", "creating resolver (" + p + " "+ lr.hashCode()+")");
+					
+					locationResolvers.add(lr);
+				}
+			}
 			state = LocationFinderState.Confused;
 		}
 	}
@@ -145,11 +182,13 @@ public class RapidGPSLock {
 		if(bestLocationProvider != null)
 		{
 			//remove all location updates
-		/*	for(LocationResolver locationResolver: locationResolvers)
+			for(LocationResolver locationResolver: locationResolvers)
 			{
+				Log.d("showmehills", "Removing (" +locationResolver.provider + " " + locationResolver.hashCode()+")");
+				
 				mLocationManager.removeUpdates(locationResolver);
 			}
-			*/
+			
 			mLocationManager.removeUpdates(getObserver());
 			state=LocationFinderState.Confused;
 			requestBestLocationUpdates();
