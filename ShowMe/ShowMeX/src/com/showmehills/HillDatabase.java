@@ -132,7 +132,7 @@ import android.util.Log;
 			+" and longitude between "+
 			(curLocation.getLongitude() - (maxdistance/(111.0 * Math.sin(curLocation.getLatitude() * Math.PI / 180))))+" and " +
 			(curLocation.getLongitude() + (maxdistance/(111.0 * Math.sin(curLocation.getLatitude() * Math.PI / 180))));
-			Log.d("showmehills", qu);
+			
 			Cursor cursor = getReadableDatabase().rawQuery( qu, null);
 	        
 			if(cursor.moveToFirst()) {

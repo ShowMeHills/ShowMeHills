@@ -106,7 +106,8 @@ public class RapidGPSLock {
 	
 	public Location getCurrentLocation() {
 		if (curLoc == null) {
-			throw new RuntimeException("No GPS Found");
+			return null;
+			//throw new RuntimeException("No GPS Found");
 		}
 		synchronized (curLoc) {
 			return curLoc;
@@ -144,10 +145,11 @@ public class RapidGPSLock {
 		if(bestLocationProvider != null)
 		{
 			//remove all location updates
-			for(LocationResolver locationResolver: locationResolvers)
+		/*	for(LocationResolver locationResolver: locationResolvers)
 			{
 				mLocationManager.removeUpdates(locationResolver);
 			}
+			*/
 			mLocationManager.removeUpdates(getObserver());
 			state=LocationFinderState.Confused;
 			requestBestLocationUpdates();

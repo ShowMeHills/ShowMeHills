@@ -386,19 +386,46 @@ public class ShowMeHillsActivity extends Activity implements SensorEventListener
 		@Override     
 		protected void onDraw(Canvas canvas) { 
 			if (!isCalibrated)
-			{				
-				textPaint.setTextSize(20);
+			{
+				// adjust text to fit any screen - lol, so hacky :-D
+				boolean happyWithSize = false;
+				int txtSize = 20;
+				do
+				{
+					textPaint.setTextSize(txtSize);
+					float sz = textPaint.measureText("screen, wait for stabilisation, and tap again.");
+					if (sz > scrwidth*0.7 )
+					{
+						txtSize--;
+					}
+					else if (sz < scrwidth*0.6)
+					{
+						txtSize++;
+					}
+					else
+					{
+						happyWithSize = true;
+					}
+				} while (!happyWithSize);
+				
 				textPaint.setTextAlign(Paint.Align.LEFT);
 				textPaint.setARGB(255, 255, 255, 255);				
 				paint.setARGB(100, 0, 0, 0);
-				canvas.drawRoundRect(new RectF(155,55,600,320), 50,50,paint);
-				canvas.drawText( "To calibrate, view an object at the very", 200, 90, textPaint);
-				canvas.drawText( "left edge of the screen, and wait for", 200, 120, textPaint);
-				canvas.drawText( "the direction sensor to stabilise. Then", 200, 150, textPaint);
-				canvas.drawText( "tap the screen (gently, so you don't move", 200, 180, textPaint);
-				canvas.drawText( "the view!). Then turn around until the ", 200, 210, textPaint);
-				canvas.drawText( "object is at the very right edge of the ", 200, 240, textPaint);
-				canvas.drawText( "screen, wait for stabilisation, and tap again.", 200, 270, textPaint);
+
+				int subwidth = (int)(scrwidth*0.7);
+				int subheight = (int)(scrheight*0.7);
+				int gap = (scrwidth - subwidth) / 2;
+				int txtgap = gap+(subwidth/30);
+				int vtxtgap = (int)(subheight / 10);
+				// left, top, right, bottom
+				canvas.drawRoundRect(new RectF(gap,vtxtgap,scrwidth-gap,vtxtgap*11), 50,50,paint);
+				canvas.drawText( "To calibrate, view an object at the very", txtgap, vtxtgap*3, textPaint);
+				canvas.drawText( "left edge of the screen, and wait for", txtgap, vtxtgap*4, textPaint);
+				canvas.drawText( "the direction sensor to stabilise. Then", txtgap, vtxtgap*5, textPaint);
+				canvas.drawText( "tap the screen (gently, so you don't move", txtgap, vtxtgap*6, textPaint);
+				canvas.drawText( "the view!). Then turn around until the ", txtgap, vtxtgap*7, textPaint);
+				canvas.drawText( "object is at the very right edge of the ", txtgap, vtxtgap*8, textPaint);
+				canvas.drawText( "screen, wait for stabilisation, and tap again.", txtgap, vtxtgap*9, textPaint);
 				
 				canvas.drawText( "SD: "+fd.GetVariation(), 200, 350, textPaint);
 
