@@ -87,6 +87,8 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 	float mOrientationVector[] = new float[9];
 	float mAzimuthVector[] = new float[4];
 	float mDeclination = 0;
+    private boolean mHasAccurateGravity = false;
+    private boolean mHasAccurateAccelerometer = false;
 
 	public int scrwidth = 10;
 	public int scrheight = 10;
@@ -135,6 +137,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 		hfov = prefs.getFloat("hfov", (float) 50.2);
 		compassAdjustment = prefs.getFloat("compassAdjustment", 0);
 		showhelp = prefs.getBoolean("showhelp", true);
+		CompassSmoothingWindow = prefs.getInt("compassmoothing", 50);
 	}
 
 	@Override
@@ -642,12 +645,20 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 	
 	public void onSensorChanged(SensorEvent event) {
-		/*
-		 * this is preventing the compass working under certain conditions
-		 if (event.accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE) {
-			return;
+		// some phones never set the sensormanager as reliable, even when readings are ok
+		// That means if we try to block it, those phones will never get a compass reading.
+		// So we let any readings through until we know we can get accurate readings. Once We know that 
+		// we'll block the inaccurate ones
+		if (event.accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE) {
+			if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER && mHasAccurateAccelerometer) return;
+			if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD && mHasAccurateGravity) return;
 		}
-		*/
+		else
+		{
+			if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) mHasAccurateAccelerometer = true;
+			if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) mHasAccurateGravity = true;
+		}
+
 
 		if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)  mGravity = event.values;
 		if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) mGeomagnetic = event.values;

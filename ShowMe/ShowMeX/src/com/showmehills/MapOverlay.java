@@ -49,7 +49,6 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
 import com.showmehills.R;
-import com.showmehills.ShowMeHillsActivity.LocationTimerTask;
 
 public class MapOverlay extends MapActivity implements IShowMeHillsActivity, SensorEventListener {
 	
@@ -68,6 +67,8 @@ public class MapOverlay extends MapActivity implements IShowMeHillsActivity, Sen
     int maxLat = 0;
     int minLon = 0;
     int maxLon = 0;
+    private boolean mHasAccurateGravity = false;
+    private boolean mHasAccurateAccelerometer = false;
     
 	Timer timer = new Timer();
 	private int GPSretryTime = 15;
@@ -232,9 +233,20 @@ public class MapOverlay extends MapActivity implements IShowMeHillsActivity, Sen
 	}
 	
 	public void onSensorChanged(SensorEvent event) {
-		/*if (event.accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE) {
-			return;
-		}*/
+		
+		// some phones never set the sensormanager as reliable, even when readings are ok
+		// That means if we try to block it, those phones will never get a compass reading.
+		// So we let any readings through until we know we can get accurate readings. Once We know that 
+		// we'll block the inaccurate ones
+		if (event.accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE) {
+			if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER && mHasAccurateAccelerometer) return;
+			if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD && mHasAccurateGravity) return;
+		}
+		else
+		{
+			if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) mHasAccurateAccelerometer = true;
+			if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) mHasAccurateGravity = true;
+		}
 
 		if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)  mGravity = event.values;
 		if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) mGeomagnetic = event.values;

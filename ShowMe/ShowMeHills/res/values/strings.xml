@@ -14,4 +14,6 @@
     <string name="summary_showalt_preference"></string>
 	<string name="title_distunit_preference">Units</string>
     <string name="summary_distunit_preference">Kilometers or miles</string>
+    <string name="title_compass_smoothing">Compass filter</string>
+    <string name="summary_compass_smoothing">Number of readings averaged</string>
 </resources>
