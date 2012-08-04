@@ -1,0 +1,17 @@
+create a csv file with columns;
+id, name, longitude, latitude, height, link, itemtype
+
+Then use sqlite3 to 
+a) update version number
+b) clear out existing data
+c) import csv file
+
+~\Workspace\ShowMeHills\ShowMe\ShowMeHills\assets>sqlite3 hillsv1.db
+SQLite version 3.7.12 2012-05-14 01:41:23
+Enter ".help" for instructions
+Enter SQL statements terminated with a ";"
+sqlite> delete from mountains;
+sqlite> update dbversions set ver=2;
+sqlite> .mode csv
+sqlite> .import C:\\Users\\njc\\Documents\\Workspace\\ShowMeHills\\ShowMe\\Database\\all-exported.csv mountains
+sqlite> .quit

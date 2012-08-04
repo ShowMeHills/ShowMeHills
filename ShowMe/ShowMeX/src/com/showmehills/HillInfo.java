@@ -72,7 +72,7 @@ public class HillInfo extends Activity{
 			
 			t = (TextView) findViewById(R.id.infolink);
 			n = cursor.getString(cursor.getColumnIndex("link"));
-			t.setText("web: http://www.openstreetmap.org/browse/node/"+n);
+			t.setText("web: "+n);
 			
 		}
 		else

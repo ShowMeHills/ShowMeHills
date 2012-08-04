@@ -39,9 +39,6 @@ public class LocationResolver implements LocationListener
 		this.locationMgrImpl = locationMgrImpl;
 	}
 	public void onLocationChanged(Location location) {
-		
-		Log.d("showmehills", "new location (" + provider +" "+this.hashCode()+ ") " + location.getAccuracy() + " " + location.getLatitude() + "," + location.getLongitude());
-		Log.d("showmehills", "self-Removing (" + provider + " " + hashCode()+")");
 		lm.removeUpdates(this);
 		locationMgrImpl.locationCallback(provider);
 	}

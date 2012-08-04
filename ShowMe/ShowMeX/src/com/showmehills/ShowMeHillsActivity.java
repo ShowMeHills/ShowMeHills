@@ -70,7 +70,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 	float[] mGravity;
 	float[] mGeomagnetic;
 
-	Timer timer = new Timer();
+	Timer timer;
 	private int GPSretryTime = 60;
 	private int CompassSmoothingWindow = 50;
 	
@@ -150,6 +150,11 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 		mGPS.switchOn();
 		getPrefs();
 		wl.acquire();
+		if (timer != null)
+		{
+			timer.cancel();
+			timer = null;
+		}
 		timer = new Timer();
 		timer.scheduleAtFixedRate(new LocationTimerTask(),GPSretryTime* 1000,GPSretryTime* 1000);
 		UpdateMarkers();
@@ -165,6 +170,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 		Log.d("showmehills", "onPause");
 		super.onPause();
 		timer.cancel();
+		timer = null;
 		mGPS.switchOff(); 
 		mSensorManager.unregisterListener(this);
 		wl.release();
@@ -178,7 +184,12 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 	protected void onStop()
 	{
 		try {	 
-			mGPS.switchOff(); 
+			mGPS.switchOff();
+			if (timer != null)
+			{
+				timer.cancel();
+				timer = null;
+			}
 			mSensorManager.unregisterListener(this);
 			//wl.release();
 			myDbHelper.close();	 
@@ -202,6 +213,13 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
         mGPS = new RapidGPSLock(this);
         mGPS.switchOn();
         mGPS.findLocation();
+
+		if (timer != null)
+		{
+			timer.cancel();
+			timer = null;
+		}
+		timer = new Timer();
 		timer.scheduleAtFixedRate(new LocationTimerTask(),GPSretryTime* 1000,GPSretryTime* 1000);
 
 		mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);

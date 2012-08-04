@@ -40,7 +40,8 @@ import android.util.Log;
 
 	public class HillDatabase extends SQLiteOpenHelper{
 		private static String DB_PATH = "/data/data/com.showmehills/databases/";		 
-	    private static String DB_NAME = "hillsv1.db";	 
+	    private static String DB_NAME = "hillsv1.db";	
+	    private static int mDatabaseVersion = 2;
 	    private SQLiteDatabase myDataBase; 	 
 	    private final Context myContext;
 	    
@@ -72,7 +73,20 @@ import android.util.Log;
 	    	SQLiteDatabase checkDB = null;	 
 	    	try{
 	    		String myPath = DB_PATH + DB_NAME;
-	    		checkDB = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY);	 
+	    		checkDB = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY);	
+	    		
+
+				String qu = "select ver from dbversions limit 1";				
+				Cursor cursor = getReadableDatabase().rawQuery( qu, null);
+				if(cursor.moveToFirst()) {
+					if (cursor.getInt(0) != mDatabaseVersion)
+					{
+						Log.d("showmehills", "Old database ("+cursor.getInt(0)+"). Updating!");
+						checkDB.close();
+						myContext.deleteDatabase(DB_NAME);
+						return false;
+					}
+				}				
 	    	}catch(SQLiteException e){	 
 	    		//database does't exist yet.	 
 	    	}

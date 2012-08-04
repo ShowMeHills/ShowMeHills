@@ -97,7 +97,6 @@ public class RapidGPSLock {
 	{
 		for(LocationResolver locationResolver: locationResolvers)
 		{
-			Log.d("showmehills", "adding resolver (" + locationResolver.provider + " "+ locationResolver.hashCode()+")");
 			mLocationManager.requestLocationUpdates(locationResolver.provider, 0, 0, locationResolver);
 		}
 		/*for (String p : mLocationManager.getAllProviders()) 
@@ -153,9 +152,7 @@ public class RapidGPSLock {
 			{
 				if(mLocationManager.isProviderEnabled(p))
 				{				
-					LocationResolver lr = new LocationResolver(mLocationManager, p, this);
-					Log.d("showmehills", "creating resolver (" + p + " "+ lr.hashCode()+")");
-					
+					LocationResolver lr = new LocationResolver(mLocationManager, p, this);					
 					locationResolvers.add(lr);
 				}
 			}
@@ -184,8 +181,6 @@ public class RapidGPSLock {
 			//remove all location updates
 			for(LocationResolver locationResolver: locationResolvers)
 			{
-				Log.d("showmehills", "Removing (" +locationResolver.provider + " " + locationResolver.hashCode()+")");
-				
 				mLocationManager.removeUpdates(locationResolver);
 			}
 			
