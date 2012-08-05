@@ -34,7 +34,11 @@
 		<EditTextPreference android:key="compasssmoothing" android:numeric="integer"
 			android:title="@string/title_compass_smoothing" android:summary="@string/summary_compass_smoothing" 
 			 android:defaultValue="50"/>
-		
+		<CheckBoxPreference android:key="acra.disable"
+		    android:title="@string/pref_disable_acra"
+		    android:summaryOn="@string/pref_acra_disabled"
+		    android:summaryOff="@string/pref_acra_enabled"
+		    android:defaultValue="false"/>
 	</PreferenceCategory>
 
 </PreferenceScreen>
