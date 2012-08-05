@@ -1,13 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="ShowMe" default="help">
 <target name="all" depends="ShowMeX, ShowMeHills" />
+<target name="release" depends="ShowMeX, ShowMeHills" />
+<target name="debug" depends="ShowMeXd, ShowMeHillsd" />
 
 <target name="ShowMeX">
-    <ant antfile="build.xml" dir="ShowMe/ShowMeX" target="release" />        
+    <ant antfile="build.xml" dir="ShowMe/ShowMeX" target="release" />
 </target>
 
 <target name="ShowMeHills">
-    <ant antfile="build.xml" dir="ShowMe/ShowMeHills" target="release" />        
+    <ant antfile="build.xml" dir="ShowMe/ShowMeHills" target="release" />
+</target>
+
+<target name="ShowMeXd">
+    <ant antfile="build.xml" dir="ShowMe/ShowMeX" target="debug" />
+</target>
+
+<target name="ShowMeHillsd">
+    <ant antfile="build.xml" dir="ShowMe/ShowMeHills" target="debug" />
 </target>
 
 </project>
+
