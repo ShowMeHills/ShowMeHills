@@ -90,17 +90,8 @@ public class MapOverlay extends MapActivity implements IShowMeHillsActivity, Sen
         mGPS.findLocation();
         
         myDbHelper = new HillDatabase(this); 
-        try { 
-        	myDbHelper.createDataBase(); 
-	 	} catch (IOException ioe) {	 
-	 		throw new Error("Unable to create database");	 
-	 	}	 
-	 	try {	 
-	 		myDbHelper.openDataBase();	 
-	 	}catch(SQLException sqle){	 
-	 		throw sqle;	 
-	 	}
-	 	
+        myDbHelper.createDataBase(); 
+	 		 	
         setContentView(R.layout.mapoverlay);
         MapView mapView = (MapView) findViewById(R.id.mapview);
         mapView.setBuiltInZoomControls(true);
@@ -125,11 +116,8 @@ public class MapOverlay extends MapActivity implements IShowMeHillsActivity, Sen
 		timer.scheduleAtFixedRate(new LocationTimerTask(),GPSretryTime* 1000,GPSretryTime* 1000);
 
 		UpdateMarkers();
-		try {	 
-			myDbHelper.openDataBase();	 
-		}catch(SQLException sqle){	 
-			throw sqle;	 
-		}
+			 
+		myDbHelper.checkDataBase();	 
 	}
 
 	@Override
@@ -160,6 +148,7 @@ public class MapOverlay extends MapActivity implements IShowMeHillsActivity, Sen
 	public void UpdateMarkers()
 	{
         curLocation = mGPS.getCurrentLocation();
+        if (!myDbHelper.checkDataBase()) return;
         myDbHelper.SetDirections(curLocation);
         
         MapView mapView = (MapView) findViewById(R.id.mapview);

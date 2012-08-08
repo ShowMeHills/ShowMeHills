@@ -44,12 +44,10 @@ public class HillInfo extends Activity{
 		int hillid = b.getInt("key", 0);		
 
 		myDbHelper = new HillDatabase(this); 
-		try { 
-        	myDbHelper.createDataBase(); 
-	 	} catch (IOException ioe) {	 
-	 		throw new Error("Unable to create database");	 
-	 	}	 
-	 
+		myDbHelper.createDataBase(); 
+		
+		// if database couldn't be created then we can't do much
+		if (!myDbHelper.checkDataBase()) return;
 		String qu = "select * from mountains where _id = '"+hillid+"'";
 		Log.d("showmehills", "query: "+qu);
 		Cursor cursor = myDbHelper.getReadableDatabase().rawQuery( qu, null);
@@ -87,7 +85,7 @@ public class HillInfo extends Activity{
 		super.onResume();
 		
 		try {	 
-			myDbHelper.openDataBase();	 
+			myDbHelper.checkDataBase();	 
 		}catch(SQLException sqle){	 
 			throw sqle;	 
 		}

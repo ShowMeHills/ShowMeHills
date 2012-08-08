@@ -159,7 +159,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 		timer.scheduleAtFixedRate(new LocationTimerTask(),GPSretryTime* 1000,GPSretryTime* 1000);
 		UpdateMarkers();
 		try {	 
-			myDbHelper.openDataBase();	 
+			myDbHelper.checkDataBase();	 
 		}catch(SQLException sqle){	 
 			throw sqle;	 
 		}
@@ -168,17 +168,19 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 	@Override
 	protected void onPause() {
 		Log.d("showmehills", "onPause");
-		super.onPause();
 		timer.cancel();
 		timer = null;
 		mGPS.switchOff(); 
 		mSensorManager.unregisterListener(this);
 		wl.release();
+
+		super.onPause();
 		try {	 
 			myDbHelper.close();	 
 		}catch(SQLException sqle){	 
 			throw sqle;	 
 		}
+		
 	}
 	@Override
 	protected void onStop()
@@ -228,11 +230,11 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 		magnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
 		myDbHelper = new HillDatabase(this); 
-		try { 
+		/*try { 
 			myDbHelper.createDataBase(); 
 		} catch (IOException ioe) {	 
 			throw new Error("Unable to create database");	 
-		}	 
+		}*/	 
 	
 		Display display = getWindowManager().getDefaultDisplay(); 
 		scrwidth = display.getWidth();

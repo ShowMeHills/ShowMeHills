@@ -19,6 +19,7 @@
 
 package com.showmehills;
 
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,7 +31,6 @@ import java.util.Comparator;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -44,7 +44,7 @@ import android.util.Log;
 	    private static int mDatabaseVersion = 2;
 	    private SQLiteDatabase myDataBase; 	 
 	    private final Context myContext;
-	    
+	    private boolean mDbCopied = false;
 	    public ArrayList<Hills> localhills = new ArrayList<Hills>();
 
 	    public HillDatabase(Context context) {	 
@@ -52,7 +52,7 @@ import android.util.Log;
 	        this.myContext = context;
 	    }	
 	 
-	    public void createDataBase() throws IOException{
+	    public void createDataBase(){
 	    	// made some changes in the database, but need to update it in existing installs!
 	    	// so need to add a version number
 	    	// for now just update db every time
@@ -61,67 +61,106 @@ import android.util.Log;
 	    		//do nothing - database already exist
 	    	}else{	 
 	        	this.getReadableDatabase();	 
-	        	try {	 
-	    			copyDataBase();	 
-	    		} catch (IOException e) {	 
-	        		throw new Error("Error copying database");	 
-	        	}
+	        	copyDataBase();
 	    	}	 
 	    }
 	 
-	    private boolean checkDataBase(){	 
-	    	SQLiteDatabase checkDB = null;	 
+	    public boolean checkDataBase(){
+	    	if (!mDbCopied) return false;
+	    	if (myDataBase != null)
+	    	{
+	    		// already ok
+	    		return true;
+	    	}
 	    	try{
 	    		String myPath = DB_PATH + DB_NAME;
-	    		checkDB = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY);	
 	    		
-
+	    		try {
+	    	    	myDataBase = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY);
+	    		}
+    	    	catch(Exception e){	 
+    	    		return false;	 
+    	    	}
+	    		if (myDataBase == null)
+	    		{
+	    			return false;
+	    		}
+	    		
 				String qu = "select ver from dbversions limit 1";				
 				Cursor cursor = getReadableDatabase().rawQuery( qu, null);
 				if(cursor.moveToFirst()) {
 					if (cursor.getInt(0) != mDatabaseVersion)
 					{
 						Log.d("showmehills", "Old database ("+cursor.getInt(0)+"). Updating!");
-						checkDB.close();
+						myDataBase.close();
+						myDataBase = null;
 						myContext.deleteDatabase(DB_NAME);
 						return false;
 					}
 				}				
 	    	}catch(SQLiteException e){	 
-	    		//database does't exist yet.	 
+	    		//database does't exist yet.
+	    		e.printStackTrace();
 	    	}
 	 
-	    	if(checkDB != null){	 
-	    		checkDB.close();	 
-	    	}
-	 
-	    	return checkDB != null ? true : false;
+	    	return myDataBase != null ? true : false;
 	    }
 	 
-	    private void copyDataBase() throws IOException{	 
-	    	InputStream myInput = myContext.getAssets().open(DB_NAME);
+	    private void copyDataBase() {	 
+	    	InputStream myInput;
+			try {
+				myInput = myContext.getAssets().open(DB_NAME);
+			} catch (IOException e) {
+				e.printStackTrace();
+				return;
+			}
 	    	String outFileName = DB_PATH + DB_NAME;
-	    	OutputStream myOutput = new FileOutputStream(outFileName);
+	    	OutputStream myOutput;
+			try {
+				myOutput = new FileOutputStream(outFileName);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+		    	try {
+					myInput.close();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+		    	return;
+			}
 	    	byte[] buffer = new byte[1024];
 	    	int length;
-	    	while ((length = myInput.read(buffer))>0){
-	    		myOutput.write(buffer, 0, length);
-	    	}
-	    	myOutput.flush();
-	    	myOutput.close();
-	    	myInput.close();
-	 
+	    	try {
+				while ((length = myInput.read(buffer))>0){
+					myOutput.write(buffer, 0, length);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+
+		    	try {
+					myInput.close();
+			    	myOutput.close();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+		    	return;
+			}
+	    	try {
+				myOutput.flush();
+		    	myOutput.close();
+		    	myInput.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+	    	mDbCopied = true;
+	    	// should be created, so now open
+	    	checkDataBase();
 	    }
 	 
-	    public void openDataBase() throws SQLException{
-	        String myPath = DB_PATH + DB_NAME;
-	    	myDataBase = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY);	 
-	    }
-	    	    
 	    @Override
 		public synchronized void close() {	 
 	    	    if(myDataBase != null)
-	    		    myDataBase.close();	 
+	    		    myDataBase.close();
+	    	    myDataBase = null;
 	    	    super.close();	 
 		}
 	 
@@ -133,6 +172,13 @@ import android.util.Log;
 	 
 		public void SetDirections(Location curLocation)
 		{
+			if (curLocation == null) return;
+			
+			if (myDataBase == null)
+			{
+				createDataBase();
+				if (myDataBase == null) return;
+			}
 			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(myContext);
 	        Float maxdistance = Float.parseFloat(prefs.getString("distance", "25"));
 	        
@@ -147,7 +193,14 @@ import android.util.Log;
 			(curLocation.getLongitude() - (maxdistance/(111.0 * Math.sin(curLocation.getLatitude() * Math.PI / 180))))+" and " +
 			(curLocation.getLongitude() + (maxdistance/(111.0 * Math.sin(curLocation.getLatitude() * Math.PI / 180))));
 			
-			Cursor cursor = getReadableDatabase().rawQuery( qu, null);
+			Cursor cursor;
+			try {
+				cursor = getReadableDatabase().rawQuery( qu, null);
+			}	
+	    	catch(SQLiteException e){	 
+	    		return;	 
+	    	}
+	        if (cursor == null) return;
 	        
 			if(cursor.moveToFirst()) {
 	        	do {
@@ -168,6 +221,7 @@ import android.util.Log;
 	        }
 	        Log.d("showmehills", "Added " + localhills.size() + " markers");
 /*
+ * for testing:
 			localhills.add(new Hills(0,"London Eye",   -0.119700, 51.5033,   135));
 			localhills.add(new Hills(0,"Shard",        -0.086667, 51.504444, 308));
 			localhills.add(new Hills(0,"1 Canada Sq",  -0.019611, 51.505, 240));

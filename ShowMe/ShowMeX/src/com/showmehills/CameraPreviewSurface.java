@@ -66,7 +66,9 @@ public class CameraPreviewSurface extends SurfaceView {
 		public void surfaceDestroyed(SurfaceHolder arg0)
 		{
 			camera.stopPreview();
-			camera.release();   
+			camera.setPreviewCallback(null);
+			camera.release();
+			camera = null;
 		}
 	};
 
