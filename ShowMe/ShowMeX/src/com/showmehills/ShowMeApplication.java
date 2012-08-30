@@ -5,7 +5,7 @@ import org.acra.*;
 import org.acra.annotation.*;
 
 
-@ReportsCrashes(formKey = "dFJVM2VXaG9STEsxYTUxd0ZremVyY1E6MQ") 
+@ReportsCrashes(formKey = "dGZ5b0dtQl9WRDNBMF9DXzJ3UGNZT2c6MQ") 
 public class ShowMeApplication extends Application {
 	@Override
     public void onCreate() {
