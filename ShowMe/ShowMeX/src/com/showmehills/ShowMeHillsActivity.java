@@ -126,8 +126,12 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 	private void getPrefs() {
 		// Get the xml/preferences.xml preferences
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-		maxdistance = Float.parseFloat(prefs.getString("distance", ""+maxdistance));
-		textsize = Float.parseFloat(prefs.getString("textsize", ""+textsize));
+		String md = prefs.getString("distance", ""+maxdistance);
+		if (md == "") md = "30.0";
+		maxdistance = Float.parseFloat(md);
+		String ts = prefs.getString("textsize", ""+textsize);
+		if (ts == "") ts = "25.0";
+		textsize = Float.parseFloat(ts);
 
 		showdir = prefs.getBoolean("showdir", false);
 		showdist = prefs.getBoolean("showdist", false);
@@ -276,10 +280,13 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 			startActivity(settingsActivity);
 		} else if (item.getItemId() == R.id.mapoverlay) {
 			Location curLocation = mGPS.getCurrentLocation();
-			myDbHelper.SetDirections(curLocation);
-			editor.putFloat("longitude", (float)curLocation.getLongitude());
-			editor.putFloat("latitude", (float)curLocation.getLatitude());
-			editor.commit();
+			if (curLocation != null)
+			{
+				myDbHelper.SetDirections(curLocation);
+				editor.putFloat("longitude", (float)curLocation.getLongitude());
+				editor.putFloat("latitude", (float)curLocation.getLatitude());
+				editor.commit();
+			}
 			Intent myIntent = new Intent(getBaseContext(), MapOverlay.class);
 			startActivityForResult(myIntent, 0);
 		} else if (item.getItemId() == R.id.help) {

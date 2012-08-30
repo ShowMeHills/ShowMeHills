@@ -36,8 +36,8 @@ public class CameraPreviewSurface extends SurfaceView {
 
 		public void surfaceCreated(SurfaceHolder holder) {
 
-			camera=Camera.open();
 			try {
+				camera=Camera.open();
 				camera.setPreviewDisplay(previewHolder);
 			}
 			catch (Throwable t){ }
@@ -60,15 +60,21 @@ public class CameraPreviewSurface extends SurfaceView {
 				Log.d("showmehills", "couldn't set camera params: smh.scrwidth="+smh.scrwidth+" w="+w+" smh.scrheight="+smh.scrheight+" h="+h);
 			}
 
-			camera.startPreview();
+			if (camera != null)
+			{
+				camera.startPreview();
+			}
 		}
 	    
 		public void surfaceDestroyed(SurfaceHolder arg0)
 		{
-			camera.stopPreview();
-			camera.setPreviewCallback(null);
-			camera.release();
-			camera = null;
+			if (camera != null)
+			{
+				camera.stopPreview();
+				camera.setPreviewCallback(null);
+				camera.release();
+				camera = null;
+			}
 		}
 	};
 

@@ -54,6 +54,7 @@ public class RapidGPSLock {
 	
 	public void findLocation() 
 	{
+		if (mLocationManager == null) return;
 		// fallback for the case where GPS and network providers are disabled
 		Location hardFix = new Location("reverseGeocoded");
 
@@ -74,11 +75,12 @@ public class RapidGPSLock {
 	
 	public void locationCallback(String provider) 
 	{
+		if (mLocationManager == null) return;
 		Location foundLocation = mLocationManager.getLastKnownLocation(provider);
 		if (bestLocationProvider != null) 
 		{
 			Location bestLocation = mLocationManager.getLastKnownLocation(bestLocationProvider);
-			if (foundLocation.getAccuracy() < bestLocation.getAccuracy()) 
+			if (bestLocation != null && foundLocation.getAccuracy() < bestLocation.getAccuracy()) 
 			{
 				curLoc = foundLocation;
 				bestLocationProvider = provider;
@@ -95,6 +97,7 @@ public class RapidGPSLock {
 	
 	private void requestBestLocationUpdates() 
 	{
+		if (mLocationManager == null) return;
 		for(LocationResolver locationResolver: locationResolvers)
 		{
 			mLocationManager.requestLocationUpdates(locationResolver.provider, 0, 0, locationResolver);
@@ -175,6 +178,7 @@ public class RapidGPSLock {
 		return lob;
 	}
 	public void RenewLocation() {
+		if (mLocationManager == null) return;
 		
 		if(bestLocationProvider != null)
 		{

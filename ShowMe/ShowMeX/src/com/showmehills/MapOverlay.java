@@ -148,6 +148,7 @@ public class MapOverlay extends MapActivity implements IShowMeHillsActivity, Sen
 	public void UpdateMarkers()
 	{
         curLocation = mGPS.getCurrentLocation();
+        if (curLocation == null) return;
         if (!myDbHelper.checkDataBase()) return;
         myDbHelper.SetDirections(curLocation);
         
@@ -251,7 +252,7 @@ public class MapOverlay extends MapActivity implements IShowMeHillsActivity, Sen
 				
 				float[] dv = new float[3]; 
 				SensorManager.getOrientation(rotationMatrixA, dv);
-				if (compassOverlay.size() > 0)
+				if (compassOverlay != null && compassOverlay.size() > 0)
 				{
 					compassOverlay.mBearing = (float) Math.toDegrees((float)dv[0]);
 

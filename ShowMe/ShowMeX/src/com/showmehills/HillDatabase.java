@@ -180,7 +180,9 @@ import android.util.Log;
 				if (myDataBase == null) return;
 			}
 			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(myContext);
-	        Float maxdistance = Float.parseFloat(prefs.getString("distance", "25"));
+			String md = prefs.getString("distance", "25");
+			if (md == "") md = "25";
+	        Float maxdistance = Float.parseFloat(md);
 	        
 			localhills.clear();
 			
