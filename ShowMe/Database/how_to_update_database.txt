@@ -11,7 +11,8 @@ SQLite version 3.7.12 2012-05-14 01:41:23
 Enter ".help" for instructions
 Enter SQL statements terminated with a ";"
 sqlite> delete from mountains;
-sqlite> update dbversions set ver=2;
+sqlite> update dbversions set ver=6;
 sqlite> .mode csv
-sqlite> .import C:\\Users\\njc\\Documents\\Workspace\\ShowMeHills\\ShowMe\\Database\\all-exported.csv mountains
+sqlite> .separator "~"
+sqlite> .import planet-121017-peaks_unit_fixed.csv mountains
 sqlite> .quit

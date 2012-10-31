@@ -41,7 +41,7 @@ import android.util.Log;
 	public class HillDatabase extends SQLiteOpenHelper{
 		private static String DB_PATH = "/data/data/com.showmehills/databases/";		 
 	    private static String DB_NAME = "hillsv1.db";	
-	    private static int mDatabaseVersion = 2;
+	    private static int mDatabaseVersion = 5;
 	    private SQLiteDatabase myDataBase; 	 
 	    private final Context myContext;
 	    private boolean mDbCopied = false;
@@ -179,6 +179,7 @@ import android.util.Log;
 				createDataBase();
 				if (myDataBase == null) return;
 			}
+			
 			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(myContext);
 			String md = prefs.getString("distance", "25");
 			if (md == "") md = "25";
