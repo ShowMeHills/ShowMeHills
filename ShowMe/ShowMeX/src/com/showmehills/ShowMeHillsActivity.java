@@ -399,6 +399,11 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 		double getDirection() { return dir; }
 	}
 
+	class tmpHill {
+		Hills h;
+		double ratio;
+		int toppt;
+	};
 	class DrawOnTop extends View {
 
 		private Paint strokePaint = new Paint();
@@ -406,7 +411,15 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 		private Paint paint = new Paint();
 		private Paint transpRedPaint = new Paint();
 		private Paint variationPaint = new Paint();
-		
+
+		int subwidth;
+		int subheight;
+		int gap;
+		int txtgap;
+		int vtxtgap;
+		RectF fovrect;
+
+		ArrayList<tmpHill> hillstoplot;		
 		public DrawOnTop(Context context) {     
 			super(context);      
 
@@ -422,6 +435,15 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 
 			paint.setARGB(255, 255, 255, 255);
 			transpRedPaint.setARGB(100,255,0,0);
+
+			subwidth = (int)(scrwidth*0.7);
+			subheight = (int)(scrheight*0.7);
+			gap = (scrwidth - subwidth) / 2;
+			txtgap = gap+(subwidth/30);
+			vtxtgap = (int)(subheight / 10);
+
+			hillstoplot = new ArrayList<tmpHill>();
+			fovrect = new RectF(gap,vtxtgap,scrwidth-gap,vtxtgap*11);
 		}
 
 		@Override     
@@ -452,13 +474,8 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 				textPaint.setARGB(255, 255, 255, 255);				
 				paint.setARGB(100, 0, 0, 0);
 
-				int subwidth = (int)(scrwidth*0.7);
-				int subheight = (int)(scrheight*0.7);
-				int gap = (scrwidth - subwidth) / 2;
-				int txtgap = gap+(subwidth/30);
-				int vtxtgap = (int)(subheight / 10);
 				// left, top, right, bottom
-				canvas.drawRoundRect(new RectF(gap,vtxtgap,scrwidth-gap,vtxtgap*11), 50,50,paint);
+				canvas.drawRoundRect(fovrect, 50,50,paint);
 				canvas.drawText( "To calibrate, view an object at the very", txtgap, vtxtgap*3, textPaint);
 				canvas.drawText( "left edge of the screen, and wait for", txtgap, vtxtgap*4, textPaint);
 				canvas.drawText( "the direction sensor to stabilise. Then", txtgap, vtxtgap*5, textPaint);
@@ -467,7 +484,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 				canvas.drawText( "object is at the very right edge of the ", txtgap, vtxtgap*8, textPaint);
 				canvas.drawText( "screen, wait for stabilisation, and tap again.", txtgap, vtxtgap*9, textPaint);
 				
-				canvas.drawText( "SD: "+fd.GetVariation(), 200, 350, textPaint);
+				canvas.drawText( "Dir: " + (int)fd.getDirection() + (char)0x00B0 + " SD: "+fd.GetVariation(), scrwidth/2, scrheight-(vtxtgap*2), textPaint);
 
 				textPaint.setTextAlign(Paint.Align.CENTER);
 				if (calibrationStep == -1)
@@ -481,13 +498,14 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 				int va = fd.GetVariation();
 				variationPaint.setARGB(255, 255, 0, 0);
 				variationPaint.setStrokeWidth(4);
+				int dashlength = scrheight / 10;
 				for (int i = 0; i < 360; i+=15)
 				{
 					if (i > va) variationPaint.setARGB(255, 0, 255, 0);
-					canvas.drawLine(70.0f+(15.0f*(float)Math.sin( Math.toRadians(i))),  
-									380.0f-(15.0f*(float)Math.cos( Math.toRadians(i))),  
-									70.0f+(50.0f*(float)Math.sin( Math.toRadians(i))), 
-									380.0f-(50.0f*(float)Math.cos( Math.toRadians(i))), 
+					canvas.drawLine((scrwidth/10)+(dashlength/5*(float)Math.sin( Math.toRadians(i))),  
+									scrheight-(scrheight/5)-(dashlength/5*(float)Math.cos( Math.toRadians(i))),  
+									(scrwidth/10)+(dashlength*(float)Math.sin( Math.toRadians(i))), 
+									scrheight-(scrheight/5)-(dashlength*(float)Math.cos( Math.toRadians(i))), 
 									variationPaint);
 				}
 				return;
@@ -497,13 +515,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 			ArrayList<Hills> localhills = myDbHelper.localhills;
 			int alpha = 255;
 			Float drawtextsize = textsize;
-
-			class tmpHill {
-				Hills h;
-				double ratio;
-				int toppt;
-			};
-			ArrayList<tmpHill> hillstoplot = new ArrayList<tmpHill>();
+			hillstoplot.clear();
 			mMarkers.clear();
 			for (int h = 0; h < localhills.size() && drawtextsize > 5 && toppt > 0; h++)
 			{
@@ -656,13 +668,14 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 			int va = fd.GetVariation();
 			variationPaint.setARGB(255, 255, 0, 0);
 			variationPaint.setStrokeWidth(4);
+			int dashlength = scrheight / 10;
 			for (int i = 0; i < 360; i+=15)
 			{
 				if (i > va) variationPaint.setARGB(255, 0, 255, 0);
-				canvas.drawLine(70.0f+(15.0f*(float)Math.sin( Math.toRadians(i))),  
-								380.0f-(15.0f*(float)Math.cos( Math.toRadians(i))),  
-								70.0f+(35.0f*(float)Math.sin( Math.toRadians(i))), 
-								380.0f-(35.0f*(float)Math.cos( Math.toRadians(i))), 
+				canvas.drawLine((scrwidth/10)+(dashlength/5*(float)Math.sin( Math.toRadians(i))),  
+								scrheight-(scrheight/5)-(dashlength/5*(float)Math.cos( Math.toRadians(i))),  
+								(scrwidth/10)+(dashlength*(float)Math.sin( Math.toRadians(i))), 
+								scrheight-(scrheight/5)-(dashlength*(float)Math.cos( Math.toRadians(i))), 
 								variationPaint);
 			}
 			super.onDraw(canvas);     
@@ -700,6 +713,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 				tmpA.getValues(rotationMatrixA);
 				
 				float[] rotationMatrixB = mRotationMatrixB;
+
 				switch (GetRotation())
 				{
 				// portrait - normal
@@ -709,8 +723,9 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 				break;
 				// rotated left (landscape)
 				case Surface.ROTATION_90: SensorManager.remapCoordinateSystem(rotationMatrixA,
-						SensorManager.AXIS_Z, SensorManager.AXIS_MINUS_X,
-						rotationMatrixB); 
+						//SensorManager.AXIS_Z, SensorManager.AXIS_MINUS_X,
+						SensorManager.AXIS_X, SensorManager.AXIS_Z,
+						rotationMatrixB);
 				break;
 				// upside down
 				case Surface.ROTATION_180: SensorManager.remapCoordinateSystem(rotationMatrixA,
