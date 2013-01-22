@@ -38,7 +38,18 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+
+import com.google.analytics.tracking.android.EasyTracker;
+import com.google.analytics.tracking.android.Tracker;
 import com.showmehills.R;
 
 import android.app.Activity;
@@ -49,6 +60,7 @@ import android.database.SQLException;
 import android.graphics.*;
 import android.hardware.*;
 import android.location.*;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
@@ -107,6 +119,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 	boolean typeunits = false; // true for metric, false for imperial
 	boolean showheight = false;
 	boolean showhelp = true;
+	String uniqueID = "nothere";
 	
 	public class HillMarker
 	{
@@ -142,6 +155,16 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 		compassAdjustment = prefs.getFloat("compassAdjustment", 0);
 		showhelp = prefs.getBoolean("showhelp", true);
 		CompassSmoothingWindow = prefs.getInt("compassmoothing", 50);
+		uniqueID = prefs.getString("uniqueID", "nothere"); 
+        if (uniqueID == "nothere")
+        {
+            uniqueID = UUID.randomUUID().toString();
+
+	        SharedPreferences.Editor editor = prefs.edit();
+	        editor.putString("uniqueID", uniqueID);
+	        editor.commit(); 
+
+        }
 	}
 
 	@Override
@@ -203,12 +226,17 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 			throw sqle;	 
 		}
 		super.onStop();
+
+	    EasyTracker.getInstance().activityStop(this); // Add this method.
+
 	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {  
 
 		super.onCreate(savedInstanceState);
+
+	    EasyTracker.getInstance().activityStart(this); // Add this method.
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -751,6 +779,27 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 		}
 	}
 
+
+private class UploadMetricsTask extends AsyncTask {
+     
+	@Override
+	protected Object doInBackground(Object... params) {
+		try {
+	        HttpClient client = new DefaultHttpClient();  
+	        String getURL = "http://www.showmehills.com/metrics.php?hfov="+hfov+"&fov="+cv.camera.getParameters().getHorizontalViewAngle()+"&uniqueID="+uniqueID;
+	        HttpGet get = new HttpGet(getURL);
+			
+				HttpResponse responseGet = client.execute(get);
+			} catch (ClientProtocolException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}  
+		return null;
+	}
+ }
 	public boolean onTouch(View v, MotionEvent event) {
 		if (!isCalibrated)
 		{
@@ -773,7 +822,9 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 		        SharedPreferences.Editor editor = customSharedPreference.edit();
 		        editor.putFloat("hfov", hfov);
 		        editor.putBoolean("isCalibrated", true);
-		        editor.commit();
+		        editor.commit(); 
+		        new UploadMetricsTask().execute(null);
+		        
 			}
 			return false;
 		}

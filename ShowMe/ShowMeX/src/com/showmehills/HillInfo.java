@@ -19,8 +19,6 @@
 
 package com.showmehills;
 
-import java.io.IOException;
-
 import com.showmehills.R;
 
 import android.app.Activity;

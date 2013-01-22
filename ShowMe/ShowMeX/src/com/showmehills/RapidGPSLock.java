@@ -26,7 +26,6 @@ import java.util.List;
 import android.location.Location;
 import android.location.LocationManager;
 import android.location.Criteria;
-import android.util.Log;
 
 public class RapidGPSLock {
 
