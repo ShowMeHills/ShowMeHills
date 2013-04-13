@@ -8,6 +8,10 @@
 			android:title="@string/title_distance_preference" android:summary="@string/summary_distance_preference" 
 			 android:defaultValue="30"/>
 
+		<EditTextPreference android:key="mindistance" android:numeric="integer"
+			android:title="@string/title_mindistance_preference" android:summary="@string/summary_mindistance_preference" 
+			 android:defaultValue="0"/>
+
 		<EditTextPreference android:key="textsize" android:numeric="integer"
 			android:title="@string/title_textsize_preference" android:summary="@string/summary_textsize_preference" 
 			 android:defaultValue="25"/>

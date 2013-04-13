@@ -185,16 +185,23 @@ import android.util.Log;
 			if (md == "") md = "25";
 	        Float maxdistance = Float.parseFloat(md);
 	        
+			md = prefs.getString("mindistance", "0");
+			if (md == "") md = "0";
+	        Float mindistance = Float.parseFloat(md);
+	        
 			localhills.clear();
+			
+			double curLatitude = curLocation.getLatitude();
+			double curLongitude = curLocation.getLongitude();
 			
 			// use a rule of thumb for distance between lines of lat & long
 			// 1 line of latitude = 111km
 			// 1 line of longitude = sin(latitude)* 111km. 
 			String qu = "select * from mountains where latitude between " +
-			(curLocation.getLatitude() - (maxdistance/111.0 )) + " and "+(curLocation.getLatitude() + (maxdistance/111.0 ))
-			+" and longitude between "+
-			(curLocation.getLongitude() - (maxdistance/(111.0 * Math.sin(curLocation.getLatitude() * Math.PI / 180))))+" and " +
-			(curLocation.getLongitude() + (maxdistance/(111.0 * Math.sin(curLocation.getLatitude() * Math.PI / 180))));
+			(curLatitude - (maxdistance/111.0 )) + " and " + (curLatitude + (maxdistance/111.0 ))
+			+ " and longitude between " +
+			(curLongitude - (maxdistance/(111.0 * Math.sin(curLatitude * Math.PI / 180)))) + " and " +
+			(curLongitude + (maxdistance/(111.0 * Math.sin(curLatitude * Math.PI / 180))));
 			
 			Cursor cursor;
 			try {
@@ -205,24 +212,66 @@ import android.util.Log;
 	    	}
 	        if (cursor == null) return;
 	        
+			int tooNear = 0, tooFar = 0;
 			if(cursor.moveToFirst()) {
+				double dLat, dLon, lat1, lat2;
+				double x, y, brng, a, c, dheight;
+				Hills h;
+				
 	        	do {
 	        		try {
-	        		Hills h = new Hills( 
-	        				cursor.getInt(cursor.getColumnIndex("_id")),
-	        				cursor.getString(cursor.getColumnIndex("name")),
-	        				cursor.getDouble(cursor.getColumnIndex("longitude")),
-	        				cursor.getDouble(cursor.getColumnIndex("latitude")),
-	        				cursor.getDouble(cursor.getColumnIndex("height")));
-	        		//Log.d("showmehills", "Adding " + h.hillname + "@"+h.longitude+","+h.latitude);
-	        		localhills.add(h);
+		        		h = new Hills( 
+		        				cursor.getInt(cursor.getColumnIndex("_id")),
+		        				cursor.getString(cursor.getColumnIndex("name")),
+		        				cursor.getDouble(cursor.getColumnIndex("longitude")),
+		        				cursor.getDouble(cursor.getColumnIndex("latitude")),
+		        				cursor.getDouble(cursor.getColumnIndex("height")));
+		        		
+						dLat = Math.toRadians(h.latitude - curLatitude); 
+						dLon =  Math.toRadians(h.longitude - curLongitude); 
+						lat1 = Math.toRadians(curLatitude);
+						lat2 = Math.toRadians(h.latitude);
+						
+						// direction calculation
+						y = Math.sin(dLon) * Math.cos(lat2);
+						x = Math.cos(lat1)*Math.sin(lat2) -
+						        Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);
+						brng = Math.atan2(y, x)  * 180 / Math.PI;
+						
+						h.direction = (brng<0)?brng+360:brng;
+						
+						// distance calculation				
+						a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+						        Math.cos(lat2) * Math.cos(lat1) * 
+						        Math.sin(dLon/2) * Math.sin(dLon/2); 
+						c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+						h.distance = Math.floor(10 * 6371 * c) / 10.0; // Distance in km
+	
+						// vertical angle
+						dheight = h.height - curLocation.getAltitude();
+						
+						h.visualElevation = Math.atan2(dheight, h.distance*1000);
+		        		
+						if (h.distance > maxdistance)
+						{
+							tooFar++;
+						}
+						else if (h.distance < mindistance)
+						{
+							tooNear++;
+						}
+						else
+						{
+			        		//Log.d("showmehills", "Adding " + h.hillname + "@"+h.longitude+","+h.latitude);
+			        		localhills.add(h);
+						}
 					} catch(Exception e)
 					{
 						Log.e("showmehills", "bad database read: " + e.getMessage());
 					}			
 	        	} while (cursor.moveToNext());
 	        }
-	        Log.d("showmehills", "Added " + localhills.size() + " markers");
+	        Log.d("showmehills", "Added " + localhills.size() + " markers; skipped " + tooNear + " too near, " + tooFar + " too far.");
 /*
  * for testing:
 			localhills.add(new Hills(0,"London Eye",   -0.119700, 51.5033,   135));
@@ -231,37 +280,7 @@ import android.util.Log;
 			localhills.add(new Hills(0,"BT Tower",     -0.138900, 51.5215, 191));
 			localhills.add(new Hills(0,"Gherkin",      -0.080278, 51.514444, 180));
 			*/
-			for (int h = 0; h < localhills.size(); h++)
-			{
-				Hills h1 = localhills.get(h);
 
-				double dLat = Math.toRadians(h1.latitude - curLocation.getLatitude()); 
-				double dLon =  Math.toRadians(h1.longitude - curLocation.getLongitude()); 
-				double lat1 = Math.toRadians(curLocation.getLatitude());
-				double lat2 = Math.toRadians(h1.latitude);
-				
-				// direction calculation
-				double y = Math.sin(dLon) * Math.cos(lat2);
-				double x = Math.cos(lat1)*Math.sin(lat2) -
-				        Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);
-				double brng = Math.atan2(y, x)  * 180 / Math.PI;
-				
-				h1.direction = (brng<0)?brng+360:brng;
-				
-				// distance calculation				
-				double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-				        Math.cos(lat2) * Math.cos(lat1) * 
-				        Math.sin(dLon/2) * Math.sin(dLon/2); 
-				double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-				h1.distance = Math.floor(10 * 6371 * c) / 10.0; // Distance in km
-				
-				// vertical angle
-				double dheight = h1.height - curLocation.getAltitude();
-				
-				h1.visualElevation = Math.atan2(dheight, h1.distance*1000);
-				
-				localhills.set(h, h1);
-			}
 			Collections.sort(localhills, new Comparator<Object>(){
 				 
 	            public int compare(Object o1, Object o2) {

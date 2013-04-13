@@ -447,7 +447,10 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 		int vtxtgap;
 		RectF fovrect;
 
-		ArrayList<tmpHill> hillstoplot;		
+		ArrayList<tmpHill> hillsToPlot;
+		
+		//List<Rectangle>
+		
 		public DrawOnTop(Context context) {     
 			super(context);      
 
@@ -470,7 +473,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 			txtgap = gap+(subwidth/30);
 			vtxtgap = (int)(subheight / 10);
 
-			hillstoplot = new ArrayList<tmpHill>();
+			hillsToPlot = new ArrayList<tmpHill>();
 			fovrect = new RectF(gap,vtxtgap,scrwidth-gap,vtxtgap*11);
 		}
 
@@ -478,64 +481,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 		protected void onDraw(Canvas canvas) { 
 			if (!isCalibrated)
 			{
-				// adjust text to fit any screen - lol, so hacky :-D
-				boolean happyWithSize = false;
-				do
-				{
-					textPaint.setTextSize(mMainTextSize);
-					float sz = textPaint.measureText("screen, wait for stabilisation, and tap again.");
-					if (sz > scrwidth*0.7 )
-					{
-						mMainTextSize--;
-					}
-					else if (sz < scrwidth*0.6)
-					{
-						mMainTextSize++;
-					}
-					else
-					{
-						happyWithSize = true;
-					}
-				} while (!happyWithSize);
-				
-				textPaint.setTextAlign(Paint.Align.LEFT);
-				textPaint.setARGB(255, 255, 255, 255);				
-				paint.setARGB(100, 0, 0, 0);
-
-				// left, top, right, bottom
-				canvas.drawRoundRect(fovrect, 50,50,paint);
-				canvas.drawText( "To calibrate, view an object at the very", txtgap, vtxtgap*3, textPaint);
-				canvas.drawText( "left edge of the screen, and wait for", txtgap, vtxtgap*4, textPaint);
-				canvas.drawText( "the direction sensor to stabilise. Then", txtgap, vtxtgap*5, textPaint);
-				canvas.drawText( "tap the screen (gently, so you don't move", txtgap, vtxtgap*6, textPaint);
-				canvas.drawText( "the view!). Then turn around until the ", txtgap, vtxtgap*7, textPaint);
-				canvas.drawText( "object is at the very right edge of the ", txtgap, vtxtgap*8, textPaint);
-				canvas.drawText( "screen, wait for stabilisation, and tap again.", txtgap, vtxtgap*9, textPaint);
-				
-				canvas.drawText( "Dir: " + (int)fd.getDirection() + (char)0x00B0 + " SD: "+fd.GetVariation(), scrwidth/2, scrheight-(vtxtgap*2), textPaint);
-
-				textPaint.setTextAlign(Paint.Align.CENTER);
-				if (calibrationStep == -1)
-				{
-					canvas.drawRect(0,0, 10, scrheight, transpRedPaint);
-				}
-				else
-				{
-					canvas.drawRect(scrwidth-10,0, scrwidth, scrheight, transpRedPaint);
-				}
-				int va = fd.GetVariation();
-				variationPaint.setARGB(255, 255, 0, 0);
-				variationPaint.setStrokeWidth(4);
-				int dashlength = scrheight / 10;
-				for (int i = 0; i < 360; i+=15)
-				{
-					if (i > va) variationPaint.setARGB(255, 0, 255, 0);
-					canvas.drawLine((scrwidth/10)+(dashlength/5*(float)Math.sin( Math.toRadians(i))),  
-									scrheight-(scrheight/5)-(dashlength/5*(float)Math.cos( Math.toRadians(i))),  
-									(scrwidth/10)+(dashlength*(float)Math.sin( Math.toRadians(i))), 
-									scrheight-(scrheight/5)-(dashlength*(float)Math.cos( Math.toRadians(i))), 
-									variationPaint);
-				}
+				drawCalibrationInstructions(canvas);
 				return;
 			}
 			int toppt = (int) (scrheight/1.6);
@@ -543,7 +489,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 			ArrayList<Hills> localhills = myDbHelper.localhills;
 			int alpha = 255;
 			Float drawtextsize = textsize;
-			hillstoplot.clear();
+			hillsToPlot.clear();
 			mMarkers.clear();
 			for (int h = 0; h < localhills.size() && drawtextsize > 5 && toppt > 0; h++)
 			{
@@ -578,7 +524,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 					th.h = h1;
 					th.ratio = ratio;
 					th.toppt = toppt;
-					hillstoplot.add(th);
+					hillsToPlot.add(th);
 
 					toppt -= (showdir || showdist)?drawtextsize*2:drawtextsize;
 					drawtextsize -= 1;
@@ -586,11 +532,11 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 			}
 			drawtextsize = textsize;
 			// draw lines first
-			for (int i = 0; i < hillstoplot.size(); i++)
+			for (int i = 0; i < hillsToPlot.size(); i++)
 			{
 				textPaint.setARGB(alpha, 255, 255, 255);				
 				strokePaint.setARGB(alpha, 0, 0, 0);
-				tmpHill th = hillstoplot.get(i);
+				tmpHill th = hillsToPlot.get(i);
 				double vratio = Math.toDegrees(th.h.visualElevation - fe.getDirection());
 				int yloc = (int)((scrheight * vratio / vfov) + (scrheight/2));
 				int xloc = ((int)(scrwidth * th.ratio) + (scrwidth/2));
@@ -602,7 +548,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 			}
 			alpha = 255;
 			// draw text over top
-			for (int i = 0; i < hillstoplot.size(); i++)
+			for (int i = 0; i < hillsToPlot.size(); i++)
 			{
 				textPaint.setARGB(alpha, 255, 255, 255);				
 				strokePaint.setARGB(alpha, 0, 0, 0);
@@ -610,7 +556,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 				textPaint.setTextSize(drawtextsize);
 				strokePaint.setTextSize(drawtextsize);
 				
-				tmpHill th = hillstoplot.get(i);
+				tmpHill th = hillsToPlot.get(i);
 				int xloc = ((int)(scrwidth * th.ratio) + (scrwidth/2));
 				
 				Rect bnds = new Rect();
@@ -630,17 +576,17 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 				if (showdir || showdist || showheight) 
 				{
 					String marker = " (";						
-					if (showdir) marker += " " + Math.floor(10*th.h.direction)/10 + (char) 0x00B0;
+					if (showdir) marker += Math.floor(10*th.h.direction)/10 + (char) 0x00B0;
 					if (showdist) 
 					{
 						double multip = (typeunits)?1:0.621371;
-						marker += " " + Math.floor(10*th.h.distance*multip)/10;
+						marker += (showdir ? " " : "") + Math.floor(10*th.h.distance*multip)/10;
 						if (typeunits) marker += "km"; else marker += "miles";
 					}
 					if (showheight) 
 					{
 						double multip = (typeunits)?1:3.2808399;
-						marker += " " + th.h.height * multip;
+						marker += ((showdir || showdist) ? " " : "") + th.h.height * multip;
 						if (typeunits) marker += "m"; else marker += "ft";
 					}
 					marker += ")";
@@ -707,6 +653,67 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 								variationPaint);
 			}
 			super.onDraw(canvas);     
+		}
+
+		private void drawCalibrationInstructions(Canvas canvas) {
+			// adjust text to fit any screen - lol, so hacky :-D
+			boolean happyWithSize = false;
+			do
+			{
+				textPaint.setTextSize(mMainTextSize);
+				float sz = textPaint.measureText("screen, wait for stabilisation, and tap again.");
+				if (sz > scrwidth*0.7 )
+				{
+					mMainTextSize--;
+				}
+				else if (sz < scrwidth*0.6)
+				{
+					mMainTextSize++;
+				}
+				else
+				{
+					happyWithSize = true;
+				}
+			} while (!happyWithSize);
+			
+			textPaint.setTextAlign(Paint.Align.LEFT);
+			textPaint.setARGB(255, 255, 255, 255);				
+			paint.setARGB(100, 0, 0, 0);
+
+			// left, top, right, bottom
+			canvas.drawRoundRect(fovrect, 50,50,paint);
+			canvas.drawText( "To calibrate, view an object at the very", txtgap, vtxtgap*3, textPaint);
+			canvas.drawText( "left edge of the screen, and wait for", txtgap, vtxtgap*4, textPaint);
+			canvas.drawText( "the direction sensor to stabilise. Then", txtgap, vtxtgap*5, textPaint);
+			canvas.drawText( "tap the screen (gently, so you don't move", txtgap, vtxtgap*6, textPaint);
+			canvas.drawText( "the view!). Then turn around until the ", txtgap, vtxtgap*7, textPaint);
+			canvas.drawText( "object is at the very right edge of the ", txtgap, vtxtgap*8, textPaint);
+			canvas.drawText( "screen, wait for stabilisation, and tap again.", txtgap, vtxtgap*9, textPaint);
+			
+			canvas.drawText( "Dir: " + (int)fd.getDirection() + (char)0x00B0 + " SD: "+fd.GetVariation(), scrwidth/2, scrheight-(vtxtgap*2), textPaint);
+
+			textPaint.setTextAlign(Paint.Align.CENTER);
+			if (calibrationStep == -1)
+			{
+				canvas.drawRect(0,0, 10, scrheight, transpRedPaint);
+			}
+			else
+			{
+				canvas.drawRect(scrwidth-10,0, scrwidth, scrheight, transpRedPaint);
+			}
+			int va = fd.GetVariation();
+			variationPaint.setARGB(255, 255, 0, 0);
+			variationPaint.setStrokeWidth(4);
+			int dashlength = scrheight / 10;
+			for (int i = 0; i < 360; i+=15)
+			{
+				if (i > va) variationPaint.setARGB(255, 0, 255, 0);
+				canvas.drawLine((scrwidth/10)+(dashlength/5*(float)Math.sin( Math.toRadians(i))),  
+								scrheight-(scrheight/5)-(dashlength/5*(float)Math.cos( Math.toRadians(i))),  
+								(scrwidth/10)+(dashlength*(float)Math.sin( Math.toRadians(i))), 
+								scrheight-(scrheight/5)-(dashlength*(float)Math.cos( Math.toRadians(i))), 
+								variationPaint);
+			}
 		}    
 	}
 
