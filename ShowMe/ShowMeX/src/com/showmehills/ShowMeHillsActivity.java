@@ -148,7 +148,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 
 		showdir = prefs.getBoolean("showdir", false);
 		showdist = prefs.getBoolean("showdist", false);
-		showheight = prefs.getBoolean("showheight", false);
+		showheight = prefs.getBoolean("showalt", false);
 		typeunits = prefs.getString("distunits", "metric").equalsIgnoreCase("metric");
 		isCalibrated = prefs.getBoolean("isCalibrated", false);
 		hfov = prefs.getFloat("hfov", (float) 50.2);
@@ -570,28 +570,37 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 				//canvas.drawRect(bnds, strokePaint);
 				
 				mMarkers.add(new HillMarker(th.h.id, bnds));
-				canvas.drawText(th.h.hillname, xloc, ((showdir || showdist)?th.toppt-drawtextsize-5:th.toppt-5) - toppt, strokePaint);
-				canvas.drawText(th.h.hillname, xloc, ((showdir || showdist)?th.toppt-drawtextsize-5:th.toppt-5) - toppt, textPaint);
+				canvas.drawText(th.h.hillname, xloc, ((showdir || showdist || showheight)?th.toppt-drawtextsize-5:th.toppt-5) - toppt, strokePaint);
+				canvas.drawText(th.h.hillname, xloc, ((showdir || showdist || showheight)?th.toppt-drawtextsize-5:th.toppt-5) - toppt, textPaint);
 				
 				if (showdir || showdist || showheight) 
 				{
+					boolean hascontents = false;
 					String marker = " (";						
 					if (showdir) marker += Math.floor(10*th.h.direction)/10 + (char) 0x00B0;
 					if (showdist) 
 					{
+						hascontents = true;
 						double multip = (typeunits)?1:0.621371;
 						marker += (showdir ? " " : "") + Math.floor(10*th.h.distance*multip)/10;
 						if (typeunits) marker += "km"; else marker += "miles";
 					}
 					if (showheight) 
 					{
-						double multip = (typeunits)?1:3.2808399;
-						marker += ((showdir || showdist) ? " " : "") + th.h.height * multip;
-						if (typeunits) marker += "m"; else marker += "ft";
+						if (th.h.height > 0)
+						{
+							hascontents = true;
+							double multip = (typeunits)?1:3.2808399;
+							marker += ((showdir || showdist) ? " " : "") + th.h.height * multip;
+							if (typeunits) marker += "m"; else marker += "ft";
+						}
 					}
 					marker += ")";
-					canvas.drawText(marker, xloc, th.toppt-5 - toppt, strokePaint);
-					canvas.drawText(marker, xloc, th.toppt-5 - toppt, textPaint);					
+					if (hascontents)
+					{
+						canvas.drawText(marker, xloc, th.toppt-5 - toppt, strokePaint);
+						canvas.drawText(marker, xloc, th.toppt-5 - toppt, textPaint);
+					}
 				}
 
 				alpha -= 10;
