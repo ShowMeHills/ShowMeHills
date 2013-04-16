@@ -369,11 +369,9 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 		
 		double getDirection() 
 		{ 
-			double ret = (dir<0)?360+Math.toDegrees(dir):Math.toDegrees(dir); 
-			ret += compassAdjustment;
-			if (ret < 0) ret = 360-ret;
-			if (ret > 360) ret = ret - 360;
-			return ret;
+			// Allow for (possibly large) negative direction and/or compass adjustment by adding
+			// two full circles before applying modulus to force a value between 0 and 360.
+			return (Math.toDegrees(dir) + compassAdjustment + 720) % 360;
 		}
 
 		int GetVariation()
