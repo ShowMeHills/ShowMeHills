@@ -575,7 +575,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 				{
 					boolean hascontents = false;
 					String marker = " (";						
-					if (showdir) marker += Math.floor(10*th.h.direction)/10 + (char) 0x00B0;
+					if (showdir) marker += Math.floor(10*th.h.direction)/10 + "\u00B0";
 					if (showdist) 
 					{
 						hascontents = true;
