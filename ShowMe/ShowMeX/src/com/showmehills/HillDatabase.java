@@ -41,7 +41,7 @@ import android.util.Log;
 	public class HillDatabase extends SQLiteOpenHelper{
 		private static String DB_PATH = "/data/data/com.showmehills/databases/";		 
 	    private static String DB_NAME = "hillsv1.db";	
-	    private static int mDatabaseVersion = 7;
+	    private static int mDatabaseVersion = 8;
 	    private SQLiteDatabase myDataBase; 	 
 	    private final Context myContext;
 	    private boolean mDbCopied = false;

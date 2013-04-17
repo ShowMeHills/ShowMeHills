@@ -35,7 +35,7 @@
             android:entries="@array/distunitarray"
             android:entryValues="@array/distunitarray" />
 		
-		<EditTextPreference android:key="compasssmoothing" android:numeric="integer"
+		<EditTextPreference android:key="smoothing" android:numeric="integer"
 			android:title="@string/title_compass_smoothing" android:summary="@string/summary_compass_smoothing" 
 			 android:defaultValue="50"/>
 		

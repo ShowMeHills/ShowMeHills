@@ -110,7 +110,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 	private HillDatabase myDbHelper;
 	private filteredDirection fd = new filteredDirection();
 	private filteredElevation fe = new filteredElevation();
-
+	
 	// preferences
 	Float maxdistance = 30f;
 	Float textsize = 25f;
@@ -154,7 +154,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 		hfov = prefs.getFloat("hfov", (float) 50.2);
 		compassAdjustment = prefs.getFloat("compassAdjustment", 0);
 		showhelp = prefs.getBoolean("showhelp", true);
-		CompassSmoothingWindow = prefs.getInt("compassmoothing", 50);
+		CompassSmoothingWindow = Integer.parseInt(prefs.getString("smoothing", "50"));
 		uniqueID = prefs.getString("uniqueID", "nothere"); 
         if (uniqueID == "nothere")
         {
@@ -170,12 +170,16 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 	@Override
 	protected void onResume() {
 		Log.d("showmehills", "onResume");
+
+		getPrefs();
+
+		fd = new filteredDirection();
+		fe = new filteredElevation();
 		super.onResume();
 
 		mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
 		mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_GAME);	 
 		mGPS.switchOn();
-		getPrefs();
 		wl.acquire();
 		if (timer != null)
 		{
@@ -446,9 +450,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 		RectF fovrect;
 
 		ArrayList<tmpHill> hillsToPlot;
-		
-		//List<Rectangle>
-		
+				
 		public DrawOnTop(Context context) {     
 			super(context);      
 
@@ -726,7 +728,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 	
-	public void onSensorChanged(SensorEvent event) {
+	public void onSensorChanged(SensorEvent event) {		
 		// some phones never set the sensormanager as reliable, even when readings are ok
 		// That means if we try to block it, those phones will never get a compass reading.
 		// So we let any readings through until we know we can get accurate readings. Once We know that 
@@ -793,27 +795,6 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 		}
 	}
 
-
-private class UploadMetricsTask extends AsyncTask {
-     
-	@Override
-	protected Object doInBackground(Object... params) {
-		try {
-	        HttpClient client = new DefaultHttpClient();  
-	        String getURL = "http://www.showmehills.com/metrics.php?hfov="+hfov+"&fov="+cv.camera.getParameters().getHorizontalViewAngle()+"&uniqueID="+uniqueID;
-	        HttpGet get = new HttpGet(getURL);
-			
-				HttpResponse responseGet = client.execute(get);
-			} catch (ClientProtocolException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}  
-		return null;
-	}
- }
 	public boolean onTouch(View v, MotionEvent event) {
 		if (!isCalibrated)
 		{
@@ -836,9 +817,7 @@ private class UploadMetricsTask extends AsyncTask {
 		        SharedPreferences.Editor editor = customSharedPreference.edit();
 		        editor.putFloat("hfov", hfov);
 		        editor.putBoolean("isCalibrated", true);
-		        editor.commit(); 
-		        new UploadMetricsTask().execute(null);
-		        
+		        editor.commit(); 		        
 			}
 			return false;
 		}

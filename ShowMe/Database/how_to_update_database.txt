@@ -16,3 +16,13 @@ sqlite> .mode csv
 sqlite> .separator "~"
 sqlite> .import planet-121017-peaks_unit_fixed.csv mountains
 sqlite> .quit
+
+
+if you're going to import OSM first and then want to merge in British Hills Database, you'll need
+to delete the british hills from OSM to avoid duplicates. So I import OSM first, then do this;
+
+delete from mountains where longitude between -12 and -2.960816 and latitude between 59.651034 and 61;
+delete from mountains where longitude between -2.960815 and 1.367798 and latitude between 50.519248 and 61;
+delete from mountains where longitude between 1.367797 and 2.098389 and latitude between 51.094323 and 61;
+
+then import British Hills. I'm hoping those regions are ok, but it's not rigourously tested (as usual!)
