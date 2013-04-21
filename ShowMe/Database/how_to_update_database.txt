@@ -15,14 +15,21 @@ sqlite> update dbversions set ver=6;
 sqlite> .mode csv
 sqlite> .separator "~"
 sqlite> .import planet-121017-peaks_unit_fixed.csv mountains
+sqlite> vacuum;
 sqlite> .quit
 
+Remember to update mDatabaseVersion in HillsDatabase.java to match the version set in the database above,otherwise the database will keep trying to reload and no hills will be shown.
 
-if you're going to import OSM first and then want to merge in British Hills Database, you'll need
-to delete the british hills from OSM to avoid duplicates. So I import OSM first, then do this;
+if you're going to import OSM first and then want to merge in British Hills Database, you have two options:
+
+1) delete the british hills from OSM to avoid duplicates. So I import OSM first, then do this;
 
 delete from mountains where longitude between -12 and -2.960816 and latitude between 59.651034 and 61;
 delete from mountains where longitude between -2.960815 and 1.367798 and latitude between 50.519248 and 61;
 delete from mountains where longitude between 1.367797 and 2.098389 and latitude between 51.094323 and 61;
 
 then import British Hills. I'm hoping those regions are ok, but it's not rigourously tested (as usual!)
+
+2) If you are familiar with Oracle databases, follow the instructions in how_to_merge_datasets_oracle.txt
+to prepare a single CSV file with OSM and BIH datasets merged and most duplicates removed. Use this CSV
+file in the SQLite ".import" command above instead.
