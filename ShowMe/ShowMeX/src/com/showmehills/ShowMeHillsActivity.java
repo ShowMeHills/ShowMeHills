@@ -121,6 +121,17 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 	boolean showhelp = true;
 	String uniqueID = "nothere";
 	
+	// constants
+	private static final float TEXT_SIZE_DECREMENT = 1;
+	private static final float TEXT_SIZE_MIN = 7;
+	
+	private static final int ALPHA_LABEL_MAX = 255;
+	private static final int ALPHA_LINE_MAX = 205;
+	private static final int ALPHA_DECREMENT = 10;
+	private static final int ALPHA_STROKE_MIN = 200;
+	private static final int ALPHA_LABEL_MIN = 180;
+	private static final int ALPHA_LINE_MIN = 50;
+	
 	public class HillMarker
 	{
 		public HillMarker(int id, Rect loc) { location = loc; hillid=id; }
@@ -454,11 +465,9 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 		public DrawOnTop(Context context) {     
 			super(context);      
 
-			textPaint.setARGB(255, 255, 255, 255);
 			textPaint.setTextAlign(Paint.Align.CENTER);
 			textPaint.setTypeface(Typeface.DEFAULT_BOLD);
 
-			strokePaint.setARGB(255, 0, 0, 0);
 			strokePaint.setTextAlign(Paint.Align.CENTER);
 			strokePaint.setTypeface(Typeface.DEFAULT_BOLD);
 			strokePaint.setStyle(Paint.Style.STROKE);
@@ -484,14 +493,25 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 				drawCalibrationInstructions(canvas);
 				return;
 			}
-			int toppt = (int) (scrheight/1.6);
 
 			ArrayList<Hills> localhills = myDbHelper.localhills;
-			int alpha = 255;
+			
+			int topPt = calculateHillsCanFitOnCanvas((int)(scrheight/1.6), localhills);
+			
+			drawHillLabelLines(canvas, topPt);
+			
+			drawHillLabelText(canvas, topPt);
+
+			drawLocationAndOrientationStatus(canvas);
+			
+			super.onDraw(canvas);     
+		}
+
+		private int calculateHillsCanFitOnCanvas(int topPt, ArrayList<Hills> localhills) {
 			Float drawtextsize = textsize;
 			hillsToPlot.clear();
 			mMarkers.clear();
-			for (int h = 0; h < localhills.size() && drawtextsize > 5 && toppt > 0; h++)
+			for (int h = 0; h < localhills.size() && topPt > 0; h++)
 			{
 				Hills h1 = localhills.get(h);
 
@@ -523,14 +543,26 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 
 					th.h = h1;
 					th.ratio = ratio;
-					th.toppt = toppt;
+					th.toppt = topPt;
 					hillsToPlot.add(th);
 
-					toppt -= (showdir || showdist)?drawtextsize*2:drawtextsize;
-					drawtextsize -= 1;
+					topPt -= (showdir || showdist || showheight && th.h.height > 0)?(1 + drawtextsize*2):drawtextsize;
+					
+					if (drawtextsize - TEXT_SIZE_DECREMENT >= TEXT_SIZE_MIN)
+					{
+						drawtextsize -= TEXT_SIZE_DECREMENT;
+					}
 				}
 			}
-			drawtextsize = textsize;
+			
+			// Fudge-factor because we don't know exactly how high label text will display until we draw it later.
+			// A tiny font at the top needs to be moved down slightly to avoid being clipped; larger fonts seem OK.
+			topPt -= Math.max(0, 13 - drawtextsize);
+			return topPt;
+		}
+
+		private void drawHillLabelLines(Canvas canvas, int toppt) {
+			int alpha = ALPHA_LINE_MAX;
 			// draw lines first
 			for (int i = 0; i < hillsToPlot.size(); i++)
 			{
@@ -544,40 +576,55 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 				canvas.drawLine(xloc, yloc, xloc, th.toppt - toppt, textPaint);
 				canvas.drawLine(xloc-20, th.toppt - toppt, xloc+20, th.toppt - toppt, strokePaint);
 				canvas.drawLine(xloc-20, th.toppt - toppt, xloc+20, th.toppt - toppt, textPaint);
-				alpha -= 10;
+
+				if (alpha - ALPHA_DECREMENT >= ALPHA_LINE_MIN)
+				{
+					alpha -= ALPHA_DECREMENT;
+				}
 			}
-			alpha = 255;
+		}
+
+		private void drawHillLabelText(Canvas canvas, int toppt) {
+			boolean moreinfo;
+			Float drawtextsize = textsize;
+			int alpha = ALPHA_LABEL_MAX;
 			// draw text over top
 			for (int i = 0; i < hillsToPlot.size(); i++)
 			{
 				textPaint.setARGB(alpha, 255, 255, 255);				
-				strokePaint.setARGB(alpha, 0, 0, 0);
+				strokePaint.setARGB(Math.min(alpha, ALPHA_STROKE_MIN), 0, 0, 0);
 
 				textPaint.setTextSize(drawtextsize);
 				strokePaint.setTextSize(drawtextsize);
 				
 				tmpHill th = hillsToPlot.get(i);
+				moreinfo = (showdir || showdist || showheight && th.h.height > 0);
 				int xloc = ((int)(scrwidth * th.ratio) + (scrwidth/2));
 				
 				Rect bnds = new Rect();
 				strokePaint.getTextBounds(th.h.hillname,0,th.h.hillname.length(),bnds);
 				bnds.left += xloc - (textPaint.measureText(th.h.hillname) / 2.0);
 				bnds.right += xloc - (textPaint.measureText(th.h.hillname) / 2.0);
-				bnds.top += ((showdir || showdist)?th.toppt-drawtextsize-5:th.toppt-5) - toppt;
-				bnds.bottom += th.toppt-5 - toppt;				
+				bnds.top += th.toppt - 5 - toppt;
+				if (moreinfo) bnds.top -= drawtextsize;
+				bnds.bottom += th.toppt-5 - toppt;
 
 				// draws bounding box of touch region to select hill
 				//canvas.drawRect(bnds, strokePaint);
 				
 				mMarkers.add(new HillMarker(th.h.id, bnds));
-				canvas.drawText(th.h.hillname, xloc, ((showdir || showdist || showheight)?th.toppt-drawtextsize-5:th.toppt-5) - toppt, strokePaint);
-				canvas.drawText(th.h.hillname, xloc, ((showdir || showdist || showheight)?th.toppt-drawtextsize-5:th.toppt-5) - toppt, textPaint);
+				canvas.drawText(th.h.hillname, xloc, th.toppt - ((moreinfo)?drawtextsize:0) - 5 - toppt, strokePaint);
+				canvas.drawText(th.h.hillname, xloc, th.toppt - ((moreinfo)?drawtextsize:0) - 5 - toppt, textPaint);
 				
 				if (showdir || showdist || showheight) 
 				{
 					boolean hascontents = false;
 					String marker = " (";						
-					if (showdir) marker += Math.floor(10*th.h.direction)/10 + "\u00B0";
+					if (showdir)
+					{
+						hascontents = true;
+						marker += Math.floor(10*th.h.direction)/10 + "\u00B0";
+					}
 					if (showdist) 
 					{
 						hascontents = true;
@@ -590,9 +637,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 						if (th.h.height > 0)
 						{
 							hascontents = true;
-							double multip = (typeunits)?1:3.2808399;
-							marker += ((showdir || showdist) ? " " : "") + th.h.height * multip;
-							if (typeunits) marker += "m"; else marker += "ft";
+							marker += ((showdir || showdist) ? " " : "") + distanceAsImperialOrMetric(th.h.height);
 						}
 					}
 					marker += ")";
@@ -603,10 +648,19 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 					}
 				}
 
-				alpha -= 10;
-				drawtextsize -= 1;
-			}
+				if (alpha - ALPHA_DECREMENT >= ALPHA_LABEL_MIN)
+				{
+					alpha -= ALPHA_DECREMENT;
+				}
 
+				if (drawtextsize - TEXT_SIZE_DECREMENT >= TEXT_SIZE_MIN)
+				{
+					drawtextsize -= TEXT_SIZE_DECREMENT;
+				}
+			}
+		}
+
+		private void drawLocationAndOrientationStatus(Canvas canvas) {
 			textPaint.setTextSize(mMainTextSize);
 			strokePaint.setTextSize(mMainTextSize);
 			textPaint.setARGB(255, 255, 255, 255);				
@@ -618,32 +672,33 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 			String basetext = "" + (int)fd.getDirection() + (char)0x00B0;
 			basetext +=" (adj:"+compadj+")";
 			basetext +=" FOV: "+String.format("%.01f", hfov);
-			basetext +=" Location " + acc;
-			canvas.drawText( basetext, scrwidth/2, scrheight-70, strokePaint);
-			canvas.drawText( basetext, scrwidth/2, scrheight-70, textPaint);	
+
 			if (badsensor)
 			{
 				canvas.drawText( "Recalibrate sensor!", 10, 80, paint);	
 			}
+
 			Location curLocation = mGPS.getCurrentLocation();
 			if (curLocation != null)
 			{
-				acc = "+/- ";
-				if (typeunits) 
-				{
-					acc += (int)curLocation.getAccuracy();
-					acc+= "m"; 
-				}
-				else
-				{
-					acc+=(int)(curLocation.getAccuracy()*3.2808399);
-					acc+="ft";
-				}				
+				acc = "+/- " + distanceAsImperialOrMetric(curLocation.getAccuracy());				
 			}
-			if (curLocation == null || curLocation.getAccuracy() > 200)
+			else
 			{
-				if (curLocation == null || acc=="") basetext = "No GPS position yet";
-				else if (curLocation.getAccuracy() > 200) basetext = "Warning - GPS position too inaccurate";
+				acc = "?";
+			}
+
+			basetext +=" Location " + acc;
+			canvas.drawText( basetext, scrwidth/2, scrheight-70, strokePaint);
+			canvas.drawText( basetext, scrwidth/2, scrheight-70, textPaint);	
+
+			basetext = "";
+			
+			if (curLocation == null) basetext = "No GPS position yet";
+			else if (curLocation.getAccuracy() > 200) basetext = "Warning - GPS position too inaccurate";
+			
+			if (basetext != "")
+			{
 				canvas.drawText( basetext, scrwidth/2, scrheight/2, strokePaint);
 				canvas.drawText( basetext, scrwidth/2, scrheight/2, textPaint);	
 			}
@@ -661,7 +716,6 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 								scrheight-(scrheight/5)-(dashlength*(float)Math.cos( Math.toRadians(i))), 
 								variationPaint);
 			}
-			super.onDraw(canvas);     
 		}
 
 		private void drawCalibrationInstructions(Canvas canvas) {
@@ -885,6 +939,11 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 
 	public LocationManager GetLocationManager() {
 		return (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+	}
+
+	private String distanceAsImperialOrMetric(double distance) {
+		if (typeunits) return (int)distance + "m";
+		else return (int)(distance*3.2808399) + "ft";
 	}
 }
 
