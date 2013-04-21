@@ -1,0 +1,237 @@
+Instructions for merging British Hills Database with Openstreetmap Peaks using Oracle SQL Developer.
+Note: these instructions assume some familiarity with Oracle and using SQL Developer.
+The import stages could be achieved more efficiently using SQLLDR if preferred but this is not covered here.
+
+1. Log in to your Oracle database (e.g. Oracle XE) as a user with sufficient quota for creating the hills database.
+
+2. Create the "hills" table to be used for importing from CSV, merging, pruning and exporting to CSV again:
+
+	SQL>
+	CREATE TABLE HILLS
+		(
+			"ID"           NUMBER(10),
+			"NAME"         NVARCHAR2(128),
+			"LONGITUDE"    NUMBER,
+			"LATITUDE"     NUMBER,
+			"HEIGHT"       NUMBER,
+			"LINK"         nvarchar2(200),
+			"ITEMTYPE"     VARCHAR2(20) default "peak",
+			"HILLS_SOURCE" VARCHAR2(50),
+			"DROP_HEIGHT"  NUMBER,
+			constraint "PK_HIILLS" primary key ("ID", "HILLS_SOURCE")
+		);
+
+	Note: if the hills table already exists and you wish to start over, to prepare for a new import, first delete all rows:
+	
+	SQL>
+	TRUNCATE TABLE HILLS;
+
+3. Set the SQL Developer default encoding to UTF-8 so that the OSM peak names' UNICODE characters are preserved on import.
+
+	a. Launch SQL Developer.
+	b. Select Tools -> Preferences from the menu.
+	c. On the Environment entry, select "UTF8" from the Encoding drop-down.
+
+4. Prepare the planet-yymmdd-peaks_unit_fixed.csv (OpenStreetMap world peaks) file for import:
+
+	a. Edit the file (e.g. using Notepad)
+	b. Replace all instances of "~ ~" with "~null~" to deal with empty heights.
+
+5. Prepare the default hills_source to be "OSM" (OpenStreetMap):
+
+	SQL>
+	alter table hills modify hills_source default 'OSM';
+
+6. Import the CSV file using SQL Developer:
+
+	a. Expand the Tables for the current connection in the tree.
+	b. Right-click the HILLS table and choose "Import Data...".
+	c. Change the "Column Delimiter" character to "~".
+	d. Navigate to the ShowMe\Database folder containing the planet-yymmdd-peaks_unit_fixed.csv file, select the file and choose Open.
+	e. The Data Preview step shows the data to be imported. Verify visually that any non-Latin names have been read correctly and there are 7 columns.
+	f. Press Next.
+	g. Press the Add All (Alt+L) button to move all 7 columns over to the right to be imported.
+	h. Press Next.
+	i. The Column Definitions step allows each CSV column to be assigned a database table column. Assign each one in order:
+			COL 1 => ID
+			COL 2 => NAME
+			COL 3 => 
+	j. Press Next.
+	k. Press Finish.
+
+7. Prepare the default hills_source to be "BIH" (British Hills):
+
+	SQL>
+	alter table hills modify hills_source default 'BIH';
+
+8. Import the CSV file using SQL Developer:
+
+	a. Right-click the HILLS table and choose "Import Data...".
+	b. Change the "Column Delimiter" character to ",".
+	c. Select the DoBIH_vXX_Y.csv (British Hills DB) file and choose Open.
+	d. The Data Preview step shows that the first row is a header. Click the "Header" checkbox to ensure that the header row is skipped.
+	e. Press Next.
+	f. Move the columns shown below to the right list (we will use the mapping in step h).
+			Number => ID
+			Name => NAME
+			Metres => HEIGHT
+			Hill-bagging => LINK
+			Longitude => LONGITUDE
+			Latitude => LATITUDE
+			Drop => DROP_HEIGHT
+	g. Press Next.
+	h. The Column Definitions step allows each CSV column to be assigned a database table column. Assign each one in order, i.e. COL 1 => ID, COL 2 => NAME, etc.
+	i. Press Next.
+	j. Press Finish.
+
+8. Due to a SQL Developer importer bug, names with apostrophes in them (e.g. "St Martha's Hill") will have become double apostrophes (e.g. "St Martha''s Hill"). Fix those:
+
+	SQL>
+	update hills
+	set name = replace(name, '''''', '''')
+	where name like '%''''%';
+	
+	SQL>
+	commit;
+
+9. Add index to speed up the SQL we're about to run:
+
+	SQL>
+	CREATE INDEX IX_HILLS ON HILLS
+		(
+			"HILLS_SOURCE",
+			"LONGITUDE",
+			"LATITUDE"
+		);
+
+10. Create a stored function to help with calculating distances between LONG/LAT pairs (this uses the same calculations extracted from the :
+
+	SQL>
+	create or replace
+	FUNCTION DISTANCEBETWEENGRIDREFS 
+	(
+		lat1_deg in number  
+	, lon1_deg in number  
+	, lat2_deg in number  
+	, lon2_deg in number
+	) return number as 
+		torad number := 0.0174532925;
+		dlat number;
+		dlon number;
+		lat1 number;
+		lat2 number;
+		
+		a number;
+		c number;
+	begin
+		dlat := torad * (lat1_deg - lat2_deg);
+		dlon := torad * (lon1_deg - lon2_deg);
+		lat1 := torad * lat2_deg;
+		lat2 := torad * lat1_deg;
+		
+		-- Distance calculation				
+		a := sin(dLat/2) * sin(dLat/2) +
+						cos(lat2) * cos(lat1) * 
+						sin(dlon/2) * sin(dlon/2); 
+		c := 2 * atan2(sqrt(a), sqrt(1-a)); 
+		
+		-- Return distance in m
+		return 1000 * 6371 * c;
+	END DISTANCEBETWEENGRIDREFS;
+
+11. Now delete the duplicate hills. Note, we don't go by name matches (because names are often subtly different) but by distance from eachother compared to the sum of the height and the drop height. The idea is that in areas with taller mountains with higher drops, the BIH data is likely to be not only accurate but also complete. Conversely, in areas where the hills are small or undulating, there may be local peaks that BIH don't care to mention, so we minimise the shadow zone created by BIH hill data.
+
+	Note: you may wish to create a backup of your hills table before in case you wish to retry and fine-tune later.
+	
+	SQL>
+	delete from hills osm
+	where hills_source = 'OSM' and
+		longitude between -10.66 and 1.25 and
+		latitude between 49.245 and 60.836 and
+		exists (
+			select null
+			from hills bih
+			where hills_source = 'BIH' and
+				longitude between osm.longitude - 0.1 and osm.longitude + 0.1 and
+				latitude between osm.latitude - 0.1 and osm.latitude + 0.1 and
+				distancebetweengridrefs(latitude, longitude, osm.latitude, osm.longitude) < bih.drop_height + bih.height
+		);
+
+12. Now prepare the data for export by ensuring the IDs are unique.
+
+	a. Find the highest OSM ID and remember the resulting number (we'll call it :max_osm_id):
+
+		SQL>
+		select max(id)
+		from hills
+		where hills_source='OSM';
+
+	b. Now update the BIH data (which starts at ID 1) and add the number in the previous result:
+
+		SQL>
+		update hills
+		set id = id + :max_osm_id
+		where hills_source='BIH';
+
+		SQL>
+		commit;
+
+13. Export the data to CSV file:
+
+	a. Right-click on the HILLS table in the tree and choose Export Data -> csv...
+	b. Specify a column delimiter of "~".
+	c. Specify the file path and name for the output file (this will be the file used in the Sqlite import instructions).
+	d. Switch to the "Columns" tab.
+	e. Uncheck the HILLS_SOURCE and DROP_HEIGHT columns.
+	f. Press Apply.
+
+14. Finally, edit the CSV file generated in the above step and:
+
+	a. Remove the header line at the top.
+	b. Replace all double quotes (") with the empty string. 
+
+	** Now read ShowMe\Database\how_to_update_database.txt for instructions on how to import into the SQLite database **
+
+Appendix:
+
+A. Before dupe deletion, to fine-tune duplicate hill detection, we can use exact name matches between OSM and BIH and see how many hills match our criteria.
+
+	1. First, add a helper index to speed lookups:
+	
+	SQL>
+		CREATE INDEX IX_HILLS ON HILLS
+		(
+			"HILLS_SOURCE",
+			"LONGITUDE",
+			"LATITUDE"
+		);
+	
+	2. Then use the following statement to search for dupes:
+	
+	SQL>
+		select floor(distancebetweengridrefs(bih.latitude, bih.longitude, osm.latitude, osm.longitude)) sep,
+			osm.name, osm.longitude, osm.latitude, osm.height, bih.height, bih.longitude, bih.latitude, bih.drop_height,
+			osm.link, bih.link
+		from hills osm, hills bih
+		where osm.hills_source = 'OSM' and bih.hills_source = 'BIH' and
+			osm.name = bih.name and
+			bih.longitude between osm.longitude - 0.1 and osm.longitude + 0.1 and
+			bih.latitude between osm.latitude - 0.1 and osm.latitude + 0.1 and
+			distancebetweengridrefs(bih.latitude, bih.longitude, osm.latitude, osm.longitude) > bih.drop_height + bih.height
+			order by distancebetweengridrefs(bih.latitude, bih.longitude, osm.latitude, osm.longitude) desc;
+
+B. To see a list of duplicate hills that will be deleted:
+
+	SQL>
+	select * from hills osm
+	where hills_source = 'OSM' and
+		longitude between -10.66 and 1.25 and
+		latitude between 49.245 and 60.836 and
+		exists (
+			select null
+			from hills bih
+			where hills_source = 'BIH' and
+				longitude between osm.longitude - 0.1 and osm.longitude + 0.1 and
+				latitude between osm.latitude - 0.1 and osm.latitude + 0.1 and
+				distancebetweengridrefs(latitude, longitude, osm.latitude, osm.longitude) < bih.drop_height + bih.height
+		);

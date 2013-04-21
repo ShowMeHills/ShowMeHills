@@ -41,7 +41,7 @@ import android.util.Log;
 	public class HillDatabase extends SQLiteOpenHelper{
 		private static String DB_PATH = "/data/data/com.showmehills/databases/";		 
 	    private static String DB_NAME = "hillsv1.db";	
-	    private static int mDatabaseVersion = 8;
+	    private static int mDatabaseVersion = 9;
 	    private SQLiteDatabase myDataBase; 	 
 	    private final Context myContext;
 	    private boolean mDbCopied = false;
@@ -94,7 +94,14 @@ import android.util.Log;
 						Log.d("showmehills", "Old database ("+cursor.getInt(0)+"). Updating!");
 						myDataBase.close();
 						myDataBase = null;
-						myContext.deleteDatabase(DB_NAME);
+						if (myContext.deleteDatabase(DB_NAME))
+						{
+							Log.d("showmehills", "Deleted old database " + myContext.getDatabasePath(DB_NAME));
+						}
+						else
+						{
+							Log.d("showmehills", "Failed to delete old database!");
+						}
 						return false;
 					}
 				}				
@@ -107,6 +114,7 @@ import android.util.Log;
 	    }
 	 
 	    private void copyDataBase() {	 
+	    	Log.d("showmehills", "Attempting to copy database " + DB_NAME + " from assets to " + DB_PATH + DB_NAME);
 	    	InputStream myInput;
 			try {
 				myInput = myContext.getAssets().open(DB_NAME);
@@ -116,6 +124,7 @@ import android.util.Log;
 			}
 	    	String outFileName = DB_PATH + DB_NAME;
 	    	OutputStream myOutput;
+	    	long bytesCopied = 0;
 			try {
 				myOutput = new FileOutputStream(outFileName);
 			} catch (FileNotFoundException e) {
@@ -132,6 +141,7 @@ import android.util.Log;
 	    	try {
 				while ((length = myInput.read(buffer))>0){
 					myOutput.write(buffer, 0, length);
+					bytesCopied += length;
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -152,6 +162,7 @@ import android.util.Log;
 				e.printStackTrace();
 			}
 	    	mDbCopied = true;
+	    	Log.d("showmehills", "Database copied successfully (" + bytesCopied + " bytes), attempting to check database again...");
 	    	// should be created, so now open
 	    	checkDataBase();
 	    }
