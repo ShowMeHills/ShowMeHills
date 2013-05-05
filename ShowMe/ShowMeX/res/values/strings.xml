@@ -18,4 +18,6 @@
     <string name="summary_distunit_preference">Kilometers or miles</string>
     <string name="title_compass_smoothing">Compass filter</string>
     <string name="summary_compass_smoothing">Number of readings averaged</string>
+    <string name="dbname">changeme</string>
+    <string name="dbpath">changeme</string>
 </resources>

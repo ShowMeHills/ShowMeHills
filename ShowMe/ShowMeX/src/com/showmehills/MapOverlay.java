@@ -88,7 +88,7 @@ public class MapOverlay extends MapActivity implements IShowMeHillsActivity, Sen
         mGPS.switchOn();
         mGPS.findLocation();
         
-        myDbHelper = new HillDatabase(this); 
+        myDbHelper = new HillDatabase(this, getString(R.string.dbname), getString(R.string.dbpath)); 
         myDbHelper.createDataBase(); 
 	 		 	
         setContentView(R.layout.mapoverlay);

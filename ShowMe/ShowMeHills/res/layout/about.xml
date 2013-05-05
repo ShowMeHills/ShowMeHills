@@ -18,15 +18,15 @@ android:layout_width="fill_parent"
 android:layout_height="5pt"
 />
 
-    
 <TextView
 android:text="ShowMeHills"
 android:background="#A0402020"
 android:layout_width="wrap_content"
 android:layout_height="wrap_content"
+android:textStyle="bold"
 android:gravity="center"/>
 <TextView
-android:text="&#169; 2012 Nik Cain"
+android:text="&#169; 2012-2013 showmehills.com Nik Cain\n"
 android:background="#A0402020"
 android:layout_width="wrap_content"
 android:layout_height="wrap_content"
@@ -39,7 +39,7 @@ android:layout_width="wrap_content"
 android:layout_height="wrap_content"
 android:gravity="left"/>
 <TextView
-android:text="If you wish to contribute, find the project at https://github.com/ShowMeHills/ShowMeHills/wiki"
+android:text="If you wish to contribute, find the project at https://github.com/ShowMeHills/ShowMeHills/wiki\n"
 android:autoLink="web"
 android:background="#A0402020"
 android:layout_width="wrap_content"
@@ -55,7 +55,14 @@ android:layout_height="wrap_content"
 android:textStyle="bold"
 android:gravity="left"/>
 <TextView
-android:text="UK peaks are from the excellent Database of British and Irish Hills http://www.hills-database.co.uk"
+android:text="Developers:\nNik Cain\nMarcel Ward\n"
+android:background="#A0402020"
+android:autoLink="web"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:gravity="left"/>
+<TextView
+android:text="UK peaks are from the excellent Database of British and Irish Hills http://www.hills-database.co.uk\n"
 android:background="#A0402020"
 android:autoLink="web"
 android:layout_width="wrap_content"

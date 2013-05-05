@@ -39,16 +39,18 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 	public class HillDatabase extends SQLiteOpenHelper{
-		private static String DB_PATH = "/data/data/com.showmehills/databases/";		 
-	    private static String DB_NAME = "hillsv1.db";	
+		private static String DB_PATH;// = "/data/data/com.showmehills.showmehillsuk/databases/";		 
+	    private static String DB_NAME;	
 	    private static int mDatabaseVersion = 9;
 	    private SQLiteDatabase myDataBase; 	 
 	    private final Context myContext;
 	    private boolean mDbCopied = false;
 	    public ArrayList<Hills> localhills = new ArrayList<Hills>();
 
-	    public HillDatabase(Context context) {	 
-	    	super(context, DB_NAME, null, 1);
+	    public HillDatabase(Context context, String dbname, String dbpath) {
+	    	super(context, dbname, null, 1);
+	        DB_NAME = dbname;
+	        DB_PATH = dbpath;
 	        this.myContext = context;
 	    }	
 	 

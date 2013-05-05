@@ -41,7 +41,7 @@ public class HillInfo extends Activity{
 		Bundle b = getIntent().getExtras();
 		int hillid = b.getInt("key", 0);		
 
-		myDbHelper = new HillDatabase(this); 
+		myDbHelper = new HillDatabase(this, getString(R.string.dbname), getString(R.string.dbpath)); 
 		myDbHelper.createDataBase(); 
 		
 		// if database couldn't be created then we can't do much

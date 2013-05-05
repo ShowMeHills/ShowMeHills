@@ -33,23 +33,13 @@ package com.showmehills;
  * The compass adjustment is necessary since the compass on my HTC Desire HD is temperamental to the point
  * of unusable. Even with the adjustment it rarely works well. 
  */
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-
 import com.google.analytics.tracking.android.EasyTracker;
-import com.google.analytics.tracking.android.Tracker;
 import com.showmehills.R;
 
 import android.app.Activity;
@@ -60,7 +50,6 @@ import android.database.SQLException;
 import android.graphics.*;
 import android.hardware.*;
 import android.location.*;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
@@ -276,7 +265,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 		accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		magnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
-		myDbHelper = new HillDatabase(this); 
+		myDbHelper = new HillDatabase(this, getString(R.string.dbname), getString(R.string.dbpath)); 
 		/*try { 
 			myDbHelper.createDataBase(); 
 		} catch (IOException ioe) {	 
