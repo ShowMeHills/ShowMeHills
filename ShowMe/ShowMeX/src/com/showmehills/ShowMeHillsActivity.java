@@ -53,6 +53,7 @@ import android.location.*;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
+import android.util.FloatMath;
 import android.util.Log;
 import android.view.*;
 import android.view.View.OnTouchListener;
@@ -82,6 +83,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 	private double calibrationStep = -1;
 	private float compassAdjustment = 0;
 	private ArrayList<HillMarker> mMarkers = new ArrayList<HillMarker>();
+	private float pinchdist = 0; 
 
 	float mRotationMatrixA[] = new float[9];
 	float mRotationMatrixB[] = new float[9];
@@ -442,6 +444,9 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 		private Paint transpRedPaint = new Paint();
 		private Paint variationPaint = new Paint();
 
+		private Paint settingPaint = new Paint();
+		private Paint settingPaint2 = new Paint();
+
 		int subwidth;
 		int subheight;
 		int gap;
@@ -492,6 +497,8 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 			drawHillLabelText(canvas, topPt);
 
 			drawLocationAndOrientationStatus(canvas);
+			
+			drawSettingsButton(canvas);
 			
 			super.onDraw(canvas);     
 		}
@@ -706,6 +713,31 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 								variationPaint);
 			}
 		}
+		
+		private void drawSettingsButton(Canvas canvas) {
+
+
+			//settingPaint.setStyle(Paint.Style.STROKE);
+			settingPaint2.setStyle(Paint.Style.STROKE);
+			settingPaint.setAntiAlias(true);
+			settingPaint2.setAntiAlias(true);
+			settingPaint2.setStrokeWidth((int)(scrwidth/100.0));
+			//settingPaint.setStrokeWidth((int)(scrwidth/80.0));
+			settingPaint2.setARGB(255, 255, 255, 255);				
+			settingPaint.setARGB(255, 0, 0, 0);
+			
+			float barwidth = scrwidth/12.0f;
+			int startPtw = scrwidth/60;
+			int startPth = scrheight/60;
+			int baroffset = scrwidth/50;
+			canvas.drawRect(0.0f, 0.0f, barwidth + (startPtw*2), baroffset * 3.3f, settingPaint);
+			
+			canvas.drawLine(startPtw, startPth, startPtw + barwidth, startPth, settingPaint2);
+
+			canvas.drawLine(startPtw, startPth+baroffset, startPtw + barwidth, startPth+baroffset, settingPaint2);
+			baroffset += baroffset;
+			canvas.drawLine(startPtw, startPth+baroffset, startPtw + barwidth, startPth+baroffset, settingPaint2);
+		}
 
 		private void drawCalibrationInstructions(Canvas canvas) {
 			// adjust text to fit any screen - lol, so hacky :-D
@@ -841,6 +873,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 	public boolean onTouch(View v, MotionEvent event) {
 		if (!isCalibrated)
 		{
+			// this is the standard FOV calibration
 			if (calibrationStep == -1)
 			{
 				calibrationStep = fd.getDirection();
@@ -864,21 +897,46 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 			}
 			return false;
 		}
-		Iterator<HillMarker> itr = mMarkers.iterator();
-	    while (itr.hasNext()) {
-	    	HillMarker m = itr.next();
-	    	if (m.location.contains((int)event.getX(), (int)event.getY()))
-			{
-	    		Intent infoActivity = new Intent(getBaseContext(),HillInfo.class);
-	    		Bundle b = new Bundle();
-
-	    		b.putInt("key", m.hillid);
-
-	    		infoActivity.putExtras(b);
-				startActivity(infoActivity);
+		// check if it's multi-touch for pinch control of FOV
+		/*
+       if (event.getPointerCount() > 1)
+       {
+    	   // multi-touch
+    	   float x = event.getX(0) - event.getX(1);
+    	   float y = event.getY(0) - event.getY(1);
+    	   if (pinchdist > 0) 
+    	   {
+    		   float delta = pinchdist - FloatMath.sqrt(x * x + y * y); 
+    		   hfov += (delta > 0) ? 1 : -1;
+    	   }
+    	   pinchdist = FloatMath.sqrt(x * x + y * y);
+       }
+       else 
+       {
+    	   pinchdist = 0;
+       }
+       */
+		if (event.getX() < scrwidth / 8 &&
+			event.getY() < scrheight / 8)
+		{
+			 openOptionsMenu();
+		}
+		else {
+			Iterator<HillMarker> itr = mMarkers.iterator();
+		    while (itr.hasNext()) {
+		    	HillMarker m = itr.next();
+		    	if (m.location.contains((int)event.getX(), (int)event.getY()))
+				{
+		    		Intent infoActivity = new Intent(getBaseContext(),HillInfo.class);
+		    		Bundle b = new Bundle();
+	
+		    		b.putInt("key", m.hillid);
+	
+		    		infoActivity.putExtras(b);
+					startActivity(infoActivity);
+				}
 			}
 		}
-
 		return false;
 	}
 	

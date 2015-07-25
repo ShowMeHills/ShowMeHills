@@ -21,6 +21,8 @@ package com.showmehills;
 
 import com.showmehills.R;
 
+import android.preference.Preference;
+import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.os.Bundle;
@@ -34,6 +36,14 @@ public class AppPreferences extends PreferenceActivity {
 		PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
 		addPreferencesFromResource(R.xml.preferences);
+		
+		Preference myPref = (Preference) findPreference("myKey");
+		myPref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+		             public boolean onPreferenceClick(Preference preference) {
+		            	 finish();
+						return false;
+		             }
+		         });
 	}
 }
 

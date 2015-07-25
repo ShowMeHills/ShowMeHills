@@ -39,6 +39,8 @@
 			android:title="@string/title_compass_smoothing" android:summary="@string/summary_compass_smoothing" 
 			 android:defaultValue="50"/>
 		
+		<Preference android:title="About" android:key="myKey"></Preference>
+		
 	</PreferenceCategory>
 
 </PreferenceScreen>
