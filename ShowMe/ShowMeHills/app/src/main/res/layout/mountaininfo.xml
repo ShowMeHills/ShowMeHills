@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <TextView
+        android:id="@+id/hillname"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hill name"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_marginBottom="10dp" />
+
+    <TextView
+        android:id="@+id/hillheight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="height"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:layout_marginBottom="10dp" />
+        
+    <TextView
+        android:id="@+id/infolink"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="web: linkwillgohere.info"
+        android:textAppearance="?android:attr/textAppearanceSmall" 
+        android:autoLink="web"
+        android:layout_marginBottom="10dp" />
+
+</TableLayout>

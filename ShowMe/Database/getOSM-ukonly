@@ -1,0 +1,3 @@
+#!/bin/bash
+
+curl https://overpass-api.de/api/interpreter?data=%5Bout%3Ajson%5D%3B%0Aarea%0A%20%20%5B%22name%3Aen%22~%22Wales%7CEngland%7CScotland%7CIreland%22%5D%3B%0Aout%20body%3B%0Anode%0A%20%20%5Bnatural%3Dpeak%5D%0A%20%20%28area%29%3B%0Aout%20body%20qt%3B%0A >> ~/osm-ukonly.txt
