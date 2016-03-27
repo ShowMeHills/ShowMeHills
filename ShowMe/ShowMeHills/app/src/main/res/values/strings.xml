@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Show Me Hills</string>
+    <string name="app_name">Show Me Hills UK</string>
     <string name="preferences">Preferences</string>
     <string name="title_distance_preference">Max Distance (km)</string>
     <string name="summary_distance_preference">Furthest displayed hills</string>
