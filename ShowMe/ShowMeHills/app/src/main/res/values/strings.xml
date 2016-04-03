@@ -18,7 +18,7 @@
     <string name="title_compass_smoothing">Compass filter</string>
     <string name="summary_compass_smoothing">Number of readings averaged</string>
     <string name="dbname">hillsv10.db</string>
-    <string name="dbpath">/data/data/com.showmehills/databases/</string>
+    <string name="dbpath">/data/data/com.showmehills.showmehillsuk/databases/</string>
     <string name="title_activity_splashscreen">Splashscreen</string>
     <string name="title_activity_maps">Map</string>
 </resources>
