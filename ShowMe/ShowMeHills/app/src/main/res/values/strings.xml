@@ -5,6 +5,8 @@
     <string name="summary_distance_preference">Furthest displayed hills</string>
     <string name="title_mindistance_preference">Min Distance (km)</string>
     <string name="summary_mindistance_preference">Nearest displayed hills</string>
+    <string name="title_minheight_preference">Min Height (m)</string>
+    <string name="summary_minheight_preference">Minimum height of displayed hills</string>
     <string name="title_textsize_preference">Text size</string>
     <string name="summary_textsize_preference" />
     <string name="title_showdist_preference">Show distance</string>
@@ -17,8 +19,10 @@
     <string name="summary_distunit_preference">Kilometers or miles</string>
     <string name="title_compass_smoothing">Compass filter</string>
     <string name="summary_compass_smoothing">Number of readings averaged</string>
-    <string name="dbname">hillsv10.db</string>
+    <string name="dbname">hillsv11.db</string>
     <string name="dbpath">/data/data/com.showmehills/databases/</string>
     <string name="title_activity_splashscreen">Splashscreen</string>
     <string name="title_activity_maps">Map</string>
+    <string name="height">Height</string>
+    <string name="distance">Distance</string>
 </resources>

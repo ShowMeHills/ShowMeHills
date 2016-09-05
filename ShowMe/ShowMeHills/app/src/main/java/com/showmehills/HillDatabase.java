@@ -38,10 +38,12 @@ import android.location.Location;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-	public class HillDatabase extends SQLiteOpenHelper{
-		private static String DB_PATH;// = "/data/data/com.showmehills.showmehillsuk/databases/";		 
+import org.florescu.android.rangeseekbar.RangeSeekBar;
+
+public class HillDatabase extends SQLiteOpenHelper{
+		private static String DB_PATH;
 	    private static String DB_NAME;	
-	    private static int mDatabaseVersion = 10;
+	    private static int mDatabaseVersion = 11;
 	    private SQLiteDatabase myDataBase; 	 
 	    private final Context myContext;
 	    private boolean mDbCopied = false;
@@ -188,7 +190,7 @@ import android.util.Log;
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {}
 	 
-		public void SetDirections(Location curLocation)
+		public void SetDirections(Location curLocation, int minheight, int maxheight, int mindistance, int maxdistance)
 		{
 			if (curLocation == null) return;
 			
@@ -197,7 +199,7 @@ import android.util.Log;
 				createDataBase();
 				if (myDataBase == null) return;
 			}
-			
+			/*
 			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(myContext);
 			String md = prefs.getString("distance", "25");
 			if (md.equals("")) md = "25";
@@ -206,7 +208,12 @@ import android.util.Log;
 			md = prefs.getString("mindistance", "0");
 			if (md.equals("")) md = "0";
 	        Float mindistance = Float.parseFloat(md);
-	        
+
+			md = prefs.getString("minheight", "0");
+			if (md.equals("")) md = "0";
+			Float minheight = Float.parseFloat(md);
+*/
+
 			localhills.clear();
 			
 			double curLatitude = curLocation.getLatitude();
@@ -214,13 +221,18 @@ import android.util.Log;
 			
 			// use a rule of thumb for distance between lines of lat & long
 			// 1 line of latitude = 111km
-			// 1 line of longitude = sin(latitude)* 111km. 
-			String qu = "select * from mountains where latitude between " +
-			(curLatitude - (maxdistance/111.0 )) + " and " + (curLatitude + (maxdistance/111.0 ))
-			+ " and longitude between " +
-			(curLongitude - (maxdistance/(111.0 * Math.sin(curLatitude * Math.PI / 180)))) + " and " +
-			(curLongitude + (maxdistance/(111.0 * Math.sin(curLatitude * Math.PI / 180))));
-			
+			// 1 line of longitude = sin(latitude)* 111km.
+			double minLat = Math.min(curLatitude - (maxdistance/111.0f ), curLatitude + (maxdistance/111.0f ));
+			double maxLat = Math.max(curLatitude - (maxdistance/111.0f ), curLatitude + (maxdistance/111.0f ));
+			double minLon = Math.min(curLongitude - (maxdistance/(111.0 * Math.sin(curLatitude * Math.PI / 180))),
+					(curLongitude + (maxdistance/(111.0 * Math.sin(curLatitude * Math.PI / 180)))));
+			double maxLon = Math.max(curLongitude - (maxdistance/(111.0 * Math.sin(curLatitude * Math.PI / 180))),
+					(curLongitude + (maxdistance/(111.0 * Math.sin(curLatitude * Math.PI / 180)))));
+			String qu = "select * from mountains where latitude between " + minLat + " and " + maxLat +
+					" and longitude between " + minLon + " and " + maxLon;
+
+			if (minheight > 0) qu += " and height > " + minheight;
+			if (maxheight < 9000) qu += " and height < " + maxheight;
 			Cursor cursor;
 			try {
 				cursor = getReadableDatabase().rawQuery( qu, null);

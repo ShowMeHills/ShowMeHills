@@ -61,6 +61,14 @@ android:layout_width="wrap_content"
 android:layout_height="wrap_content"
 android:gravity="left"
     android:layout_marginBottom="10dp" />
+
+    <TextView
+        android:text="The sliders allow you to reduce the number of hills shown (useful to quickly focus on a single range of hills in view). The slider minimum and maximum values are set in the Preferences page."
+        android:autoLink="web"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="left"
+        android:layout_marginBottom="10dp" />
 <CheckBox
         android:id="@+id/showhelp"
         android:layout_width="wrap_content"

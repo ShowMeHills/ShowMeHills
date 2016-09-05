@@ -54,8 +54,12 @@ import android.util.Log;
 import android.view.*;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup.LayoutParams;
-import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.TextView;
+
 import com.google.android.gms.analytics.Tracker;
+
+import org.florescu.android.rangeseekbar.RangeSeekBar;
 
 public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivity, SensorEventListener, OnTouchListener {
 
@@ -94,6 +98,9 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
     private filteredDirection fd = new filteredDirection();
     private filteredElevation fe = new filteredElevation();
 
+    RangeSeekBar heightSeekBar;
+    RangeSeekBar distanceSeekBar;
+
     // preferences
     Float maxdistance = 30f;
     Float textsize = 1f;
@@ -114,6 +121,10 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
     private static final int ALPHA_STROKE_MIN = 200;
     private static final int ALPHA_LABEL_MIN = 180;
     private static final int ALPHA_LINE_MIN = 50;
+
+    TextView dirText;
+    TextView fovText;
+    TextView locText;
 
     public class HillMarker
     {
@@ -153,6 +164,16 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
         showheight = prefs.getBoolean("showalt", false);
         typeunits = prefs.getString("distunits", "metric").equalsIgnoreCase("metric");
         isCalibrated = prefs.getBoolean("isCalibrated", false);
+        if (!isCalibrated) {
+            ImageView view = (ImageView)findViewById(R.id.leftarrowimage);
+            view.setVisibility(View.VISIBLE);
+        }
+        else {
+            ImageView view = (ImageView)findViewById(R.id.leftarrowimage);
+            view.setVisibility(View.INVISIBLE);
+            view = (ImageView)findViewById(R.id.rightarrowimage);
+            view.setVisibility(View.INVISIBLE);
+        }
         hfov = prefs.getFloat("hfov", (float) 50.2);
         compassAdjustment = prefs.getFloat("compassAdjustment", 0);
         showhelp = prefs.getBoolean("showhelp", true);
@@ -165,20 +186,53 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
             SharedPreferences.Editor editor = prefs.edit();
             editor.putString("uniqueID", uniqueID);
             editor.commit();
-
         }
+
+        locText = (TextView) findViewById(R.id.locText);
+        fovText = (TextView) findViewById(R.id.fovText);
+        dirText = (TextView) findViewById(R.id.dirText);
+    }
+
+    void SetSeekBars()
+    {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        heightSeekBar = (RangeSeekBar) findViewById(R.id.heightSeekBar);
+        String md = prefs.getString("mindistance", "0");
+        if (md.equals("")) md = "0";
+        Float fval = Float.parseFloat(md);
+        heightSeekBar.setRangeValues(fval, 9000);
+        heightSeekBar.setOnTouchListener(new View.OnTouchListener() {
+            int throttle = 0;
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                throttle++;
+                if (throttle % 15 == 0)
+                    UpdateMarkers();
+                return false;
+            }
+        });
+
+        distanceSeekBar = (RangeSeekBar) findViewById(R.id.distanceSeekBar);
+        md = prefs.getString("mindistance", "0");
+        if (md.equals("")) md = "0";
+        Float mindistance = Float.parseFloat(md);
+        md = prefs.getString("distance", "30");
+        if (md.equals("")) md = "30";
+        Float maxdistance = Float.parseFloat(md);
+        distanceSeekBar.setRangeValues(mindistance, maxdistance);
     }
 
     @Override
     protected void onResume() {
         Log.d("showmehills", "onResume");
-
+        cv.onResume();
         getPrefs();
 
         fd = new filteredDirection();
         fe = new filteredElevation();
         super.onResume();
 
+        SetSeekBars();
         mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
         mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_GAME);
         mGPS.switchOn();
@@ -201,6 +255,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
     @Override
     protected void onPause() {
         Log.d("showmehills", "onPause");
+        cv.onPause();
         timer.cancel();
         timer = null;
         mGPS.switchOff();
@@ -277,21 +332,47 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
         scrwidth = displaymetrics.widthPixels;
         scrheight = displaymetrics.heightPixels;
 
-        cv = new CameraPreviewSurface( this.getApplicationContext(), this);
-        FrameLayout rl = new FrameLayout( this.getApplicationContext());
-        setContentView(rl);
+        setContentView(R.layout.main);
 
         mDraw = new DrawOnTop(this);
         addContentView(mDraw, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-
-        rl.addView(cv);
+        cv = (CameraPreviewSurface)findViewById(R.id.cps);
+        cv.init(this);
         cv.setOnTouchListener(this);
+
+
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         if (prefs.getBoolean("showhelp", true))
         {
             Intent myHelpIntent = new Intent(getBaseContext(), Help.class);
             startActivityForResult(myHelpIntent, 0);
         }
+
+        SetSeekBars();
+        heightSeekBar = (RangeSeekBar) findViewById(R.id.heightSeekBar);
+        heightSeekBar.setOnTouchListener(new View.OnTouchListener() {
+            int throttle = 0;
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                throttle++;
+                if (throttle % 15 == 0)
+                    UpdateMarkers();
+                return false;
+            }
+        });
+
+        distanceSeekBar = (RangeSeekBar) findViewById(R.id.distanceSeekBar);
+        distanceSeekBar.setOnTouchListener(new View.OnTouchListener() {
+            int throttle = 0;
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                throttle++;
+                if (throttle % 15 == 0)
+                    UpdateMarkers();
+                return false;
+            }
+        });
+
     }
 
     @Override
@@ -315,7 +396,10 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
             Location curLocation = mGPS.getCurrentLocation();
             if (curLocation != null)
             {
-                myDbHelper.SetDirections(curLocation);
+                RangeSeekBar heightSeekBar = (RangeSeekBar) findViewById(R.id.heightSeekBar);
+                RangeSeekBar distanceSeekBar = (RangeSeekBar) findViewById(R.id.distanceSeekBar);
+                myDbHelper.SetDirections(curLocation, heightSeekBar.getSelectedMinValue().intValue(), heightSeekBar.getSelectedMaxValue().intValue(),
+                        distanceSeekBar.getSelectedMinValue().intValue(), distanceSeekBar.getSelectedMaxValue().intValue());
                 editor.putFloat("longitude", (float)curLocation.getLongitude());
                 editor.putFloat("latitude", (float)curLocation.getLatitude());
                 editor.commit();
@@ -332,6 +416,9 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
             finish();
         } else if (item.getItemId() == R.id.fovcalibrate) {
             calibrationStep = -1;
+
+            ImageView view = (ImageView)findViewById(R.id.leftarrowimage);
+            view.setVisibility(View.VISIBLE);
             isCalibrated = false;
             editor.putBoolean("isCalibrated", false);
             editor.commit();
@@ -344,7 +431,10 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
         Location curLocation = mGPS.getCurrentLocation();
         if (curLocation != null)
         {
-            myDbHelper.SetDirections(curLocation);
+            RangeSeekBar heightSeekBar = (RangeSeekBar) findViewById(R.id.heightSeekBar);
+            RangeSeekBar distanceSeekBar = (RangeSeekBar) findViewById(R.id.distanceSeekBar);
+            myDbHelper.SetDirections(curLocation, heightSeekBar.getSelectedMinValue().intValue(), heightSeekBar.getSelectedMaxValue().intValue(),
+                    distanceSeekBar.getSelectedMinValue().intValue(), distanceSeekBar.getSelectedMaxValue().intValue());
         }
     }
 
@@ -663,10 +753,17 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 
             String compadj = (compassAdjustment>=0)?"+":"";
             compadj += String.format("%.01f", compassAdjustment);
-
             String basetext = "" + (int)fd.getDirection() + (char)0x00B0;
             basetext +=" (adj:"+compadj+")";
-            basetext +=" FOV: "+String.format("%.01f", hfov);
+
+            if (dirText != null) {
+                dirText.setText(basetext);
+            }
+
+            basetext ="FOV: "+String.format("%.01f", hfov);
+            if (fovText != null) {
+                fovText.setText(basetext);
+            }
 
             String acc;
             Location curLocation = mGPS.getCurrentLocation();
@@ -679,9 +776,10 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
                 acc = "?";
             }
 
-            basetext +=" Location " + acc;
-            canvas.drawText( basetext, scrwidth/2, scrheight-70, strokePaint);
-            canvas.drawText( basetext, scrwidth/2, scrheight-70, textPaint);
+            basetext ="\nLocation " + acc;
+            if (locText != null) {
+                locText.setText(basetext);
+            }
 
             basetext = "";
 
@@ -701,23 +799,19 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
             for (int i = 0; i < 360; i+=15)
             {
                 if (i > va) variationPaint.setARGB(255, 0, 255, 0);
-                canvas.drawLine((scrwidth/10)+(dashlength/5*(float)Math.sin( Math.toRadians(i))),
-                        scrheight-(scrheight/5)-(dashlength/5*(float)Math.cos( Math.toRadians(i))),
-                        (scrwidth/10)+(dashlength*(float)Math.sin( Math.toRadians(i))),
-                        scrheight-(scrheight/5)-(dashlength*(float)Math.cos( Math.toRadians(i))),
-                        variationPaint);
+                canvas.drawLine((scrwidth/7)+(dashlength/5*(float)Math.sin( Math.toRadians(i))),
+                                scrheight-(scrheight/2.7f)-(dashlength/5*(float)Math.cos( Math.toRadians(i))),
+                                (scrwidth/7)+(dashlength*(float)Math.sin( Math.toRadians(i))),
+                                scrheight-(scrheight/2.7f)-(dashlength*(float)Math.cos( Math.toRadians(i))),
+                                variationPaint);
             }
         }
 
         private void drawSettingsButton(Canvas canvas) {
-
-
-            //settingPaint.setStyle(Paint.Style.STROKE);
             settingPaint2.setStyle(Paint.Style.STROKE);
             settingPaint.setAntiAlias(true);
             settingPaint2.setAntiAlias(true);
             settingPaint2.setStrokeWidth((int)(scrwidth/100.0));
-            //settingPaint.setStrokeWidth((int)(scrwidth/80.0));
             settingPaint2.setARGB(255, 255, 255, 255);
             settingPaint.setARGB(255, 0, 0, 0);
 
@@ -772,14 +866,19 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
             canvas.drawText( "Dir: " + (int)fd.getDirection() + (char)0x00B0 + " SD: "+fd.GetVariation(), scrwidth/2, scrheight-(vtxtgap*2), textPaint);
 
             textPaint.setTextAlign(Paint.Align.CENTER);
-            if (calibrationStep == -1)
+        /*    if (calibrationStep == -1)
             {
-                canvas.drawRect(0,0, 10, scrheight, transpRedPaint);
+                ImageView view = (ImageView)findViewById(R.id.LeftArrowImage);
+                view.setVisibility(View.VISIBLE);
+                //canvas.drawRect(0,0, 20, scrheight, transpRedPaint);
             }
             else
             {
-                canvas.drawRect(scrwidth-10,0, scrwidth, scrheight, transpRedPaint);
+                ImageView view = (ImageView)findViewById(R.id.LeftArrowImage);
+                view.setVisibility(View.VISIBLE);
+                //canvas.drawRect(scrwidth-20,0, scrwidth, scrheight, transpRedPaint);
             }
+            */
             int va = fd.GetVariation();
             variationPaint.setARGB(255, 255, 0, 0);
             variationPaint.setStrokeWidth(4);
@@ -874,9 +973,17 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
                 calibrationStep = fd.getDirection();
 
                 Log.d("showmehills", "1st cal pt="+calibrationStep);
+
+                ImageView view = (ImageView)findViewById(R.id.rightarrowimage);
+                view.setVisibility(View.VISIBLE);
+                view = (ImageView)findViewById(R.id.leftarrowimage);
+                view.setVisibility(View.INVISIBLE);
             }
             else
             {
+
+                ImageView view = (ImageView)findViewById(R.id.rightarrowimage);
+                view.setVisibility(View.INVISIBLE);
                 double curdir = fd.getDirection();
                 if (calibrationStep - curdir < 0) calibrationStep += 360;
                 hfov = (float)(calibrationStep - curdir);

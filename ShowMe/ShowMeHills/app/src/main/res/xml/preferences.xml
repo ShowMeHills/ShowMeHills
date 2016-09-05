@@ -12,6 +12,10 @@
 			android:title="@string/title_mindistance_preference" android:summary="@string/summary_mindistance_preference" 
 			 android:defaultValue="0"/>
 
+		<EditTextPreference android:key="minheight" android:numeric="integer"
+			android:title="@string/title_minheight_preference" android:summary="@string/summary_minheight_preference"
+			android:defaultValue="0"/>
+
 		<EditTextPreference android:key="textsize" android:numeric="integer"
 			android:title="@string/title_textsize_preference" android:summary="@string/summary_textsize_preference" 
 			 android:defaultValue="1"/>

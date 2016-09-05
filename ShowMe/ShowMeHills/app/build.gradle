@@ -5,10 +5,10 @@ android {
     buildToolsVersion "23.0.0"
     defaultConfig {
         applicationId "com.showmehills"
-        minSdkVersion 10
+        minSdkVersion 21
         targetSdkVersion 23
-        versionCode 38
-        versionName "0.38"
+        versionCode 42
+        versionName '0.42'
     }
     buildTypes {
         release {
@@ -33,4 +33,5 @@ dependencies {
     compile 'com.google.android.gms:play-services-analytics:8.4.0'
     compile 'com.google.android.gms:play-services-appindexing:8.4.0'
     compile 'com.google.android.gms:play-services:8.4.0'
+    compile 'org.florescu.android.rangeseekbar:rangeseekbar-library:0.3.0'
 }

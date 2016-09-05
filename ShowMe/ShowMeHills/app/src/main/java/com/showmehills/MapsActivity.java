@@ -2,6 +2,7 @@ package com.showmehills;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.SQLException;
 import android.graphics.Matrix;
 import android.hardware.Sensor;
@@ -10,6 +11,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -95,7 +97,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         curLocation = mGPS.getCurrentLocation();
         if (curLocation == null) return;
         if (!myDbHelper.checkDataBase()) return;
-        myDbHelper.SetDirections(curLocation);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        String md = prefs.getString("distance", "25");
+        if (md.equals("")) md = "25";
+        int maxdistance = Integer.parseInt(md);
+
+        md = prefs.getString("mindistance", "0");
+        if (md.equals("")) md = "0";
+        int mindistance = Integer.parseInt(md);
+
+        md = prefs.getString("minheight", "0");
+        if (md.equals("")) md = "0";
+        int minheight = Integer.parseInt(md);
+        myDbHelper.SetDirections(curLocation, minheight, 9000, mindistance, (int)maxdistance);
 
 
         LatLng pt = new LatLng(curLocation.getLatitude(), curLocation.getLongitude());
