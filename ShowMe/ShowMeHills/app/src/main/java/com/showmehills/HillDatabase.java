@@ -43,7 +43,7 @@ import org.florescu.android.rangeseekbar.RangeSeekBar;
 public class HillDatabase extends SQLiteOpenHelper{
 		private static String DB_PATH;
 	    private static String DB_NAME;	
-	    private static int mDatabaseVersion = 11;
+	    private static int mDatabaseVersion = 12;
 	    private SQLiteDatabase myDataBase; 	 
 	    private final Context myContext;
 	    private boolean mDbCopied = false;

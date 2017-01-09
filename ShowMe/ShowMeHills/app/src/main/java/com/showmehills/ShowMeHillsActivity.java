@@ -55,6 +55,7 @@ import android.view.*;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.analytics.Tracker;
@@ -92,7 +93,9 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
     public int scrheight = 10;
     public int scrdpi = 10;
     private int mMainTextSize = 20;
+    boolean useOldCamera = false;
     public static CameraPreviewSurface cv;
+    public static OldCameraPreviewSurface ocv;
     public DrawOnTop mDraw;
     private HillDatabase myDbHelper;
     private filteredDirection fd = new filteredDirection();
@@ -158,7 +161,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
             editor.commit();
         }
         textsize = Float.parseFloat(ts);
-
+        useOldCamera = prefs.getBoolean("useoldcam", false);
         showdir = prefs.getBoolean("showdir", false);
         showdist = prefs.getBoolean("showdist", false);
         showheight = prefs.getBoolean("showalt", false);
@@ -197,7 +200,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
     {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         heightSeekBar = (RangeSeekBar) findViewById(R.id.heightSeekBar);
-        String md = prefs.getString("mindistance", "0");
+        String md = prefs.getString("minheight", "0");
         if (md.equals("")) md = "0";
         Float fval = Float.parseFloat(md);
         heightSeekBar.setRangeValues(fval, 9000);
@@ -225,8 +228,8 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
     @Override
     protected void onResume() {
         Log.d("showmehills", "onResume");
-        cv.onResume();
         getPrefs();
+        if (!useOldCamera && cv != null) cv.onResume();
 
         fd = new filteredDirection();
         fe = new filteredElevation();
@@ -255,7 +258,7 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
     @Override
     protected void onPause() {
         Log.d("showmehills", "onPause");
-        cv.onPause();
+        if (!useOldCamera && cv != null) cv.onPause();
         timer.cancel();
         timer = null;
         mGPS.switchOff();
@@ -336,10 +339,24 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
 
         mDraw = new DrawOnTop(this);
         addContentView(mDraw, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-        cv = (CameraPreviewSurface)findViewById(R.id.cps);
-        cv.init(this);
-        cv.setOnTouchListener(this);
+        getPrefs();
+        if (!useOldCamera) {
+            Log.d("showmehills", "using camera2");
+            RelativeLayout r = (RelativeLayout) findViewById(R.id.rl);
+            cv = new CameraPreviewSurface(this);
 
+            r.addView(cv,0, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+            cv.init(this);
+            cv.setOnTouchListener(this);
+        }
+        else {
+            Log.d("showmehills", "using camera");
+            // use old camera view
+            RelativeLayout r = (RelativeLayout) findViewById(R.id.rl);
+            ocv = new OldCameraPreviewSurface(this.getApplicationContext(), this);
+            r.addView(ocv,0, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+            ocv.setOnTouchListener(this);
+        }
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         if (prefs.getBoolean("showhelp", true))
@@ -372,7 +389,6 @@ public class ShowMeHillsActivity extends Activity implements IShowMeHillsActivit
                 return false;
             }
         });
-
     }
 
     @Override

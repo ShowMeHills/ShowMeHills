@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical" >
-
-    <com.showmehills.CameraPreviewSurface
-        android:id="@+id/cps"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:contentDescription="@string/app_name"
-        />
+    android:orientation="vertical"
+    android:id="@+id/rl">
 
     <RelativeLayout
         android:id="@+id/InnerRelativeLayout"
@@ -121,4 +116,5 @@
         android:alpha="0.5"
         android:src="@drawable/arrow_facing_left"
         android:visibility="invisible" />
+
 </RelativeLayout>

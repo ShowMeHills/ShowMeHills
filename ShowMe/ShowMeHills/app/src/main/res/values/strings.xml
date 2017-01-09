@@ -19,10 +19,12 @@
     <string name="summary_distunit_preference">Kilometers or miles</string>
     <string name="title_compass_smoothing">Compass filter</string>
     <string name="summary_compass_smoothing">Number of readings averaged</string>
-    <string name="dbname">hillsv11.db</string>
+    <string name="dbname">hillsv12.db</string>
     <string name="dbpath">/data/data/com.showmehills/databases/</string>
     <string name="title_activity_splashscreen">Splashscreen</string>
     <string name="title_activity_maps">Map</string>
     <string name="height">Height</string>
     <string name="distance">Distance</string>
+    <string name="title_useoldcam_preference">Use alternative camera settings (in case of black screen) - requires a restart before setting is effective</string>
+    <string name="summary_useoldcam_preference" />
 </resources>

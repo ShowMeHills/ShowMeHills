@@ -6,9 +6,9 @@ android {
     defaultConfig {
         applicationId "com.showmehills"
         minSdkVersion 21
-        targetSdkVersion 23
-        versionCode 42
-        versionName '0.42'
+        targetSdkVersion 24
+        versionCode 46
+        versionName '0.46'
     }
     buildTypes {
         release {

@@ -42,7 +42,11 @@
 		<EditTextPreference android:key="smoothing" android:numeric="integer"
 			android:title="@string/title_compass_smoothing" android:summary="@string/summary_compass_smoothing" 
 			 android:defaultValue="50"/>
-		
+
+		<CheckBoxPreference android:key="useoldcam"
+			android:title="@string/title_useoldcam_preference" android:defaultValue="false"
+			android:summary="@string/summary_useoldcam_preference" />
+
 		<Preference android:title="About" android:key="myKey"></Preference>
 		
 	</PreferenceCategory>

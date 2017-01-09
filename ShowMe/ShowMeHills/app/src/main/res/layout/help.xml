@@ -69,7 +69,16 @@ android:gravity="left"
         android:layout_height="wrap_content"
         android:gravity="left"
         android:layout_marginBottom="10dp" />
-<CheckBox
+
+    <TextView
+        android:text="Note: If the camera view is blank, then a) ensure you said yes to the permission requests, and b) go to settings and try the alternative camera method (requires the app to be restarted)"
+        android:autoLink="web"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="left"
+        android:layout_marginBottom="10dp" />
+
+    <CheckBox
         android:id="@+id/showhelp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
