@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">Show Me Hills</string>
+    <string name="preferences">Preferências</string>
+    <string name="title_distance_preference">Distância Máxima (km)</string>
+    <string name="summary_distance_preference">Colinas expostas mais distantes</string>
+    <string name="title_mindistance_preference">Distância Mínima (km)</string>
+    <string name="summary_mindistance_preference">Colinas expostas mais próximas</string>
+    <string name="title_minheight_preference">Altura Mínima (m)</string>
+    <string name="summary_minheight_preference">Altura mínima das colinas mostradas</string>
+    <string name="title_textsize_preference">Tamanho do texto</string>
+    <string name="summary_textsize_preference" />
+    <string name="title_showdist_preference">Mostrar distância</string>
+    <string name="summary_showdist_preference" />
+    <string name="title_showdir_preference">Mostrar rolamento</string>
+    <string name="summary_showdir_preference" />
+    <string name="title_showalt_preference">Mostrar altura</string>
+    <string name="summary_showalt_preference" />
+    <string name="title_distunit_preference">Unidades</string>
+    <string name="summary_distunit_preference">Quilômetros ou milhas</string>
+    <string name="title_compass_smoothing">Filtro de bússola</string>
+    <string name="summary_compass_smoothing">Número médio de leituras</string>
+    <string name="dbname">hillsv12.db</string>
+    <string name="dbpath">/data/data/com.showmehills/databases/</string>
+    <string name="title_activity_splashscreen">Splashscreen</string>
+    <string name="title_activity_maps">Maps</string>
+    <string name="height">Altura</string>
+    <string name="distance">Distância</string>
+    <string name="title_useoldcam_preference">Usar configurações alternativas de câmera (no caso de tela preta) - exige reiniciar antes que a configuração seja efetiva</string>
+    <string name="summary_useoldcam_preference" />
+</resources>
